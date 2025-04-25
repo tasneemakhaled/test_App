@@ -1,0 +1,2 @@
+D:/flutter projects/auti_warrior_app/android/app/.cxx/Debug/z6r3c5i5/x86_64/CMakeFiles/edit_cache.dir
+D:/flutter projects/auti_warrior_app/android/app/.cxx/Debug/z6r3c5i5/x86_64/CMakeFiles/rebuild_cache.dir

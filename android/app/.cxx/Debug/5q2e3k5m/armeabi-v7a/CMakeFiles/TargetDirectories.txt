@@ -1,0 +1,2 @@
+C:/Users/ascom/Desktop/Autisim_Warrior_App-main/android/app/.cxx/Debug/5q2e3k5m/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/ascom/Desktop/Autisim_Warrior_App-main/android/app/.cxx/Debug/5q2e3k5m/armeabi-v7a/CMakeFiles/rebuild_cache.dir
