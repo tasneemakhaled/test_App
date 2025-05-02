@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:auti_warrior_app/models/AuthModels/LoginModel.dart';
 import 'package:auti_warrior_app/services/AuthService.dart';
 import 'package:auti_warrior_app/services/storage_service.dart';
-import 'package:auti_warrior_app/views/home_view.dart';
+import 'package:auti_warrior_app/views/home_views/home_view.dart';
 import 'package:auti_warrior_app/views/DoctorViews/doctorhomepage.dart';
 
 import '../../widgets/Registeration Widgets/curve.dart';

@@ -22,7 +22,8 @@ class StorageService {
   /// 🔹 حفظ الدور بعد تسجيل الدخول
   Future<void> saveRole(String role) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('user_role', role.toUpperCase()); // تحويل إلى أحرف كبيرة للتأكد من التطابق
+    await prefs.setString('user_role',
+        role.toUpperCase()); // تحويل إلى أحرف كبيرة للتأكد من التطابق
   }
 
   /// 🔹 استرجاع الدور عند الحاجة
@@ -60,13 +61,13 @@ class StorageService {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('user_lastName');
   }
-  
+
   /// 🔹 حفظ وقت آخر تسجيل خروج
   Future<void> saveLastLogoutTime(DateTime time) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('last_logout_time', time.toIso8601String());
   }
-  
+
   /// 🔹 استرجاع وقت آخر تسجيل خروج
   Future<DateTime?> getLastLogoutTime() async {
     final prefs = await SharedPreferences.getInstance();
@@ -76,7 +77,7 @@ class StorageService {
     }
     return null;
   }
-  
+
   /// 🔹 حذف جميع بيانات الجلسة
   Future<void> clearAllSessionData() async {
     final prefs = await SharedPreferences.getInstance();
@@ -86,5 +87,15 @@ class StorageService {
     await prefs.remove('user_lastName');
     // حفظ وقت تسجيل الخروج
     await saveLastLogoutTime(DateTime.now());
+  }
+
+  Future<void> saveEmail(String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_email', email);
+  }
+
+  Future<String?> getEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('user_email');
   }
 }

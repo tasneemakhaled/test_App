@@ -1,5 +1,5 @@
 import 'package:auti_warrior_app/help/constants.dart';
-import 'package:auti_warrior_app/views/home_view.dart';
+import 'package:auti_warrior_app/views/home_views/home_view.dart';
 import 'package:auti_warrior_app/widgets/Registeration%20Widgets/custom_button.dart';
 import 'package:auti_warrior_app/widgets/Registeration%20Widgets/custom_text_form_field.dart';
 import 'package:auti_warrior_app/widgets/Validation/app_regex.dart';

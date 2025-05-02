@@ -1,5 +1,9 @@
+import 'dart:developer';
+
+import 'package:auti_warrior_app/services/getAllDoctorsService.dart';
 import 'package:flutter/material.dart';
 
+import '../../models/doctorModels/AllDoctorsModel.dart';
 import '../../widgets/Profile Widgets/DoctorCard.dart';
 
 class AvailableDoctorsPage extends StatefulWidget {
@@ -8,41 +12,47 @@ class AvailableDoctorsPage extends StatefulWidget {
 }
 
 class _AvailableDoctorsPageState extends State<AvailableDoctorsPage> {
-  List<Map<String, String>> doctors = [];
+  List<AllDoctorsModel> doctors = [];
 
+  Getalldoctorsservice getalldoctorsservice = Getalldoctorsservice();
   @override
   void initState() {
     super.initState();
-    fetchDoctors();
-  }
-
-  Future<void> fetchDoctors() async {
-    // Simulating fetching data from backend
-    await Future.delayed(Duration(seconds: 2));
-    setState(() {
-      doctors = [
-        {
-          'name': 'Dr. Ahmed Ali',
-          'specialty': 'Pediatrician',
-          'image': 'https://via.placeholder.com/150',
-        },
-        {
-          'name': 'Dr. Sara Khalid',
-          'specialty': 'Neurologist',
-          'image': 'https://via.placeholder.com/150',
-        },
-        {
-          'name': 'Dr. Omar Hassan',
-          'specialty': 'Psychologist',
-          'image': 'https://via.placeholder.com/150',
-        },
-      ];
+    // fetchDoctors();
+    getalldoctorsservice.getAllDoctors().then((value) {
+      setState(() {
+        doctors = value;
+      });
     });
   }
 
+  // Future<void> fetchDoctors() async {
+  //   // Simulating fetching data from backend
+  //   await Future.delayed(Duration(seconds: 2));
+  //   setState(() {
+  //     doctors = [
+  //       {
+  //         'name': 'Dr. Ahmed Ali',
+  //         'specialty': 'Pediatrician',
+  //         'image': 'https://via.placeholder.com/150',
+  //       },
+  //       {
+  //         'name': 'Dr. Sara Khalid',
+  //         'specialty': 'Neurologist',
+  //         'image': 'https://via.placeholder.com/150',
+  //       },
+  //       {
+  //         'name': 'Dr. Omar Hassan',
+  //         'specialty': 'Psychologist',
+  //         'image': 'https://via.placeholder.com/150',
+  //       },
+  //     ];
+  //   });
+  // }
+
   void handleSubscription(int index) {
     // Handle subscription logic (to be implemented)
-    print('Subscribed to ${doctors[index]['name']}');
+    log('Subscribed to Dr. ${doctors[index].firstName} ${doctors[index].lastName}, Specialty: ${doctors[index].specialization ?? "Unknown"}');
   }
 
   @override
@@ -55,18 +65,18 @@ class _AvailableDoctorsPageState extends State<AvailableDoctorsPage> {
       body: doctors.isEmpty
           ? Center(child: CircularProgressIndicator())
           : ListView.builder(
-        padding: EdgeInsets.all(10),
-        itemCount: doctors.length,
-        itemBuilder: (context, index) {
-          final doctor = doctors[index];
-          return DoctorCard(
-            name: doctor['name']!,
-            specialty: doctor['specialty']!,
-            image: doctor['image']!,
-            onSubscribe: () => handleSubscription(index),
-          );
-        },
-      ),
+              padding: EdgeInsets.all(10),
+              itemCount: doctors.length,
+              itemBuilder: (context, index) {
+                final doctor = doctors[index];
+                return DoctorCard(
+                  name: "${doctor.firstName} ${doctor.lastName}",
+                  specialty: doctor.specialization,
+                  image:
+                      "https://via.placeholder.com/150", // أو doctor.image لو فيه
+                  onSubscribe: () => handleSubscription(index),
+                );
+              }),
     );
   }
 }

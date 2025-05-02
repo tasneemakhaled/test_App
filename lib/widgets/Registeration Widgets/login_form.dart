@@ -5,7 +5,7 @@ import 'package:auti_warrior_app/views/DoctorViews/doctorhomepage.dart';
 
 import 'package:auti_warrior_app/widgets/Validation/app_regex.dart';
 import 'package:flutter/material.dart';
-import 'package:auti_warrior_app/views/home_view.dart';
+import 'package:auti_warrior_app/views/home_views/home_view.dart';
 
 import 'custom_button.dart';
 import 'custom_text_form_field.dart';

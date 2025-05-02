@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../help/constants.dart';
+import '../../help/constants.dart';
 
 class PrivacyPolicy extends StatelessWidget {
   @override

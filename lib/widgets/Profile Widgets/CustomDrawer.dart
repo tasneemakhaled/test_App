@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:auti_warrior_app/services/storage_service.dart';
 import 'package:auti_warrior_app/services/AuthService.dart';
 import 'package:auti_warrior_app/views/RegisterationViews/login_view.dart';
-import 'package:auti_warrior_app/views/PrivacyPolicy.dart';
+
 import 'package:auti_warrior_app/views/chats/ChatsView.dart';
+
+import '../../views/PrivacyPolicy.dart';
 
 class CustomDrawer extends StatelessWidget {
   final String imageUrl; // URL or asset path for the user's photo
@@ -30,11 +32,11 @@ class CustomDrawer extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 50,
-                  backgroundImage: imageUrl.isNotEmpty
-                      ? NetworkImage(imageUrl)
-                      : null,
+                  backgroundImage:
+                      imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
                   child: imageUrl.isEmpty
-                      ? const Icon(Icons.camera_alt, size: 50, color: Colors.white)
+                      ? const Icon(Icons.camera_alt,
+                          size: 50, color: Colors.white)
                       : null,
                 ),
                 const SizedBox(height: 10),
@@ -60,7 +62,8 @@ class CustomDrawer extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => ChatsView()),
               );
             },
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
             leading: const Icon(
               Icons.contacts,
               color: Colors.blueGrey,
@@ -81,7 +84,8 @@ class CustomDrawer extends StatelessWidget {
               Navigator.pop(context);
               Navigator.pushNamed(context, '/settings');
             },
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
             leading: const Icon(
               Icons.settings,
               color: Colors.blueGrey,
@@ -105,7 +109,8 @@ class CustomDrawer extends StatelessWidget {
                 MaterialPageRoute(builder: (context) => PrivacyPolicy()),
               );
             },
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
             leading: const Icon(
               Icons.privacy_tip,
               color: Colors.blueGrey,
@@ -122,48 +127,49 @@ class CustomDrawer extends StatelessWidget {
           ),
           // Logout with real API call
           // Logout with better error handling
-ListTile(
-  onTap: () async {
-    // استرجاع التوكن من التخزين المحلي
-    final token = await StorageService().getToken();
-    
-    // محاولة تسجيل الخروج عبر الـ API
-    try {
-      if (token != null && token.isNotEmpty) {
-        await AuthService().logout(token);
-        // بغض النظر عن نتيجة محاولة تسجيل الخروج، سنقوم بمسح البيانات
-      }
-    } catch (e) {
-      print("خطأ في تسجيل الخروج: $e");
-    } finally {
-      // مسح جميع بيانات الجلسة المحلية
-      await StorageService().clearToken();
-      await StorageService().clearRole();
-      await StorageService().clearAllSessionData();
-      
-      // إغلاق الـ Drawer وإعادة توجيه المستخدم إلى صفحة تسجيل الدخول
-      Navigator.of(context).pop();
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => LoginView()),
-        (Route<dynamic> route) => false,
-      );
-    }
-  },
-  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-  leading: const Icon(
-    Icons.exit_to_app,
-    color: Colors.blueGrey,
-    size: 28,
-  ),
-  title: const Text(
-    "Logout",
-    style: TextStyle(
-      color: Colors.blueGrey,
-      fontFamily: 'KFontFamily',
-      fontSize: 18,
-    ),
-  ),
-),
+          ListTile(
+            onTap: () async {
+              // استرجاع التوكن من التخزين المحلي
+              final token = await StorageService().getToken();
+
+              // محاولة تسجيل الخروج عبر الـ API
+              try {
+                if (token != null && token.isNotEmpty) {
+                  await AuthService().logout(token);
+                  // بغض النظر عن نتيجة محاولة تسجيل الخروج، سنقوم بمسح البيانات
+                }
+              } catch (e) {
+                print("خطأ في تسجيل الخروج: $e");
+              } finally {
+                // مسح جميع بيانات الجلسة المحلية
+                await StorageService().clearToken();
+                await StorageService().clearRole();
+                await StorageService().clearAllSessionData();
+
+                // إغلاق الـ Drawer وإعادة توجيه المستخدم إلى صفحة تسجيل الدخول
+                Navigator.of(context).pop();
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => LoginView()),
+                  (Route<dynamic> route) => false,
+                );
+              }
+            },
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+            leading: const Icon(
+              Icons.exit_to_app,
+              color: Colors.blueGrey,
+              size: 28,
+            ),
+            title: const Text(
+              "Logout",
+              style: TextStyle(
+                color: Colors.blueGrey,
+                fontFamily: 'KFontFamily',
+                fontSize: 18,
+              ),
+            ),
+          ),
         ],
       ),
     );
