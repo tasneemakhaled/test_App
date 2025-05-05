@@ -15,43 +15,21 @@ class _AvailableDoctorsPageState extends State<AvailableDoctorsPage> {
   List<AllDoctorsModel> doctors = [];
 
   Getalldoctorsservice getalldoctorsservice = Getalldoctorsservice();
+
   @override
   void initState() {
     super.initState();
-    // fetchDoctors();
     getalldoctorsservice.getAllDoctors().then((value) {
       setState(() {
         doctors = value;
       });
+    }).catchError((error) {
+      log("❌ Error loading doctors: $error");
+      // يمكنك عرض رسالة على الواجهة مثلاً أو Snackbar
     });
   }
 
-  // Future<void> fetchDoctors() async {
-  //   // Simulating fetching data from backend
-  //   await Future.delayed(Duration(seconds: 2));
-  //   setState(() {
-  //     doctors = [
-  //       {
-  //         'name': 'Dr. Ahmed Ali',
-  //         'specialty': 'Pediatrician',
-  //         'image': 'https://via.placeholder.com/150',
-  //       },
-  //       {
-  //         'name': 'Dr. Sara Khalid',
-  //         'specialty': 'Neurologist',
-  //         'image': 'https://via.placeholder.com/150',
-  //       },
-  //       {
-  //         'name': 'Dr. Omar Hassan',
-  //         'specialty': 'Psychologist',
-  //         'image': 'https://via.placeholder.com/150',
-  //       },
-  //     ];
-  //   });
-  // }
-
   void handleSubscription(int index) {
-    // Handle subscription logic (to be implemented)
     log('Subscribed to Dr. ${doctors[index].firstName} ${doctors[index].lastName}, Specialty: ${doctors[index].specialization ?? "Unknown"}');
   }
 
@@ -71,9 +49,8 @@ class _AvailableDoctorsPageState extends State<AvailableDoctorsPage> {
                 final doctor = doctors[index];
                 return DoctorCard(
                   name: "${doctor.firstName} ${doctor.lastName}",
-                  specialty: doctor.specialization,
-                  image:
-                      "https://via.placeholder.com/150", // أو doctor.image لو فيه
+                  specialty: doctor.specialization ?? 'Phycologist',
+                  image: "https://via.placeholder.com/150",
                   onSubscribe: () => handleSubscription(index),
                 );
               }),

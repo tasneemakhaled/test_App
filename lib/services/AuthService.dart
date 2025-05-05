@@ -91,7 +91,7 @@ class AuthService {
     }
   }
 
-  /// Extract role from JWT token
+  /// Extract role from JWT token - FIXED VERSION
   String _extractRoleFromToken(String token) {
     try {
       // Split the token to get the payload part
@@ -116,10 +116,27 @@ class AuthService {
       final payloadMap = json.decode(decodedPayload);
 
       // Extract role
-      final role = payloadMap["role"] ?? "";
-      print("🔹 Extracted role from token: $role");
+      String roleValue = payloadMap["role"] ?? "";
+      print("🔹 Raw role from token: $roleValue");
 
-      return role;
+      // Check if the role is a string representation of a map like "{role=DOCTOR, provider=local, providerId=null}"
+      if (roleValue.startsWith("{") && roleValue.contains("role=")) {
+        // Extract just the role value from the string
+        final startIndex =
+            roleValue.indexOf("role=") + 5; // +5 to move past "role="
+        final endIndex = roleValue.indexOf(",", startIndex);
+        if (endIndex > startIndex) {
+          roleValue = roleValue.substring(startIndex, endIndex).trim();
+        } else {
+          // If there's no comma (single attribute)
+          roleValue = roleValue
+              .substring(startIndex, roleValue.indexOf("}", startIndex))
+              .trim();
+        }
+      }
+
+      print("🔹 Extracted role value: $roleValue");
+      return roleValue;
     } catch (e) {
       print("⚠️ Error extracting role from token: $e");
       return "";

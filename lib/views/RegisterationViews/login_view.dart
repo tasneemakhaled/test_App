@@ -112,16 +112,17 @@ class _LoginViewState extends State<LoginView> {
   void _navigateBasedOnRole(String role) {
     print("🧭 توجيه المستخدم بناءً على الدور: $role");
 
-    if (role.toUpperCase() == 'MOTHER') {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeView()),
-        (route) => false,
-      );
-    } else if (role.toUpperCase() == 'DOCTOR') {
+    // Use simpler comparison - case insensitive contains check
+    if (role.toUpperCase().contains('DOCTOR')) {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const DoctorHomeView()),
+        (route) => false,
+      );
+    } else if (role.toUpperCase().contains('MOTHER')) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeView()),
         (route) => false,
       );
     } else {

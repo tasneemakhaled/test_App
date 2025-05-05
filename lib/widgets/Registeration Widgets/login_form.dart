@@ -67,16 +67,20 @@ class _LoginFormState extends State<LoginForm> {
   void _navigateBasedOnRole(String role) {
     print("🧭 توجيه المستخدم من LoginForm بناءً على الدور: $role");
 
-    if (role.toUpperCase() == 'MOTHER') {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const HomeView()),
-        (route) => false,
-      );
-    } else if (role.toUpperCase() == 'DOCTOR') {
+    // Clean up the role by extracting just the role name if it's in a complex format
+    String cleanRole = role;
+
+    // Use simpler comparison - case insensitive contains check
+    if (cleanRole.toUpperCase().contains('DOCTOR')) {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const DoctorHomeView()),
+        (route) => false,
+      );
+    } else if (cleanRole.toUpperCase().contains('MOTHER')) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeView()),
         (route) => false,
       );
     } else {

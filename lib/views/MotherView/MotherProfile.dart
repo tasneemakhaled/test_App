@@ -21,7 +21,9 @@ class MotherProfileView extends StatelessWidget {
           ),
         ),
       ),
-      drawer: const CustomDrawer(), // Use CustomDrawer here
+      drawer: const CustomDrawer(
+        userName: '',
+      ), // Use CustomDrawer here
       body: Column(
         children: [
           const Center(
