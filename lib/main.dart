@@ -18,7 +18,7 @@ void main() async {
     if (role == 'MOTHER') {
       startScreen = const HomeView();
     } else if (role == 'DOCTOR') {
-      startScreen = const DoctorHomeView();
+      startScreen = DoctorHomeScreen();
     } else {
       startScreen = LoginView();
     }
@@ -47,7 +47,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => LoginView(),
         '/home': (context) => const HomeView(),
-        '/doctorHome': (context) => const DoctorHomeView(),
+        '/doctorHome': (context) => DoctorHomeScreen(),
       },
     );
   }

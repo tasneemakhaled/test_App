@@ -23,12 +23,12 @@ class AllDoctorsModel {
     );
   }
 
-  // Map<String, dynamic> toJson() {
-  //   return {
-  //     'firstName': firstName,
-  //     'lastName': lastName,
-  //     'email': email,
-  //     'specialization': specialization,
-  //   };
-  // }
+  Map<String, dynamic> toJson() {
+    return {
+      'firstName': firstName,
+      'lastName': lastName,
+      'email': email,
+      'specialization': specialization,
+    };
+  }
 }

@@ -34,7 +34,7 @@ class DoctorCard extends StatelessWidget {
             // Navigate to DoctorHomeView when the image is tapped
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => DoctorHomeView()),
+              MaterialPageRoute(builder: (context) => DoctorHomeScreen()),
             );
           },
           child: CircleAvatar(

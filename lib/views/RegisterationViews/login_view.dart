@@ -116,7 +116,7 @@ class _LoginViewState extends State<LoginView> {
     if (role.toUpperCase().contains('DOCTOR')) {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => const DoctorHomeView()),
+        MaterialPageRoute(builder: (context) => DoctorHomeScreen()),
         (route) => false,
       );
     } else if (role.toUpperCase().contains('MOTHER')) {

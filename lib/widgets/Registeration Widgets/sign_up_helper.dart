@@ -108,7 +108,7 @@ Future<void> handleSignUp(
               milliseconds: 500)); // تأخير صغير للتأكد من أن SnackBar مرئي
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => const DoctorHomeView()),
+            MaterialPageRoute(builder: (context) => DoctorHomeScreen()),
             (route) => false,
           );
         } else if (loginResponse.role == 'MOTHER') {
@@ -162,7 +162,7 @@ Future<void> handleSignUp(
           milliseconds: 500)); // Small delay to ensure SnackBar is visible
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => const DoctorHomeView()),
+        MaterialPageRoute(builder: (context) => DoctorHomeScreen()),
         (route) => false,
       );
     } else if (response.role == 'MOTHER') {
