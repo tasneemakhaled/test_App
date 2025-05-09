@@ -5,28 +5,41 @@ import '../models/doctorModels/UpdateProfileModel.dart';
 
 class DoctorService {
   final String baseUrl = "http://192.168.1.13:8081";
+
   // Function to update doctor profile
-  Future<bool> completeProfile(Doctor doctor) async {
+  Future<http.Response> completeProfile(Doctor doctor) async {
     try {
+      print("\n===== SENDING REQUEST TO API =====");
+      print("📍 URL: $baseUrl/api/doctors/completeProfile");
+      print("📦 Data: ${jsonEncode(doctor.toJson())}");
+      print("=================================\n");
+
       final response = await http.post(
-        Uri.parse('$baseUrl/api/doctors/completeProfile'),
+        Uri.parse('$baseUrl/api/doctors/complete-profile'),
         headers: {
           'Content-Type': 'application/json',
-          // You can add authentication token here if needed
-          // 'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Connection': 'keep-alive',
+          'User-Agent': 'FlutterApp',
         },
         body: jsonEncode(doctor.toJson()),
       );
 
-      if (response.statusCode == 200) {
-        return true;
-      } else {
-        print('Failed to update profile: ${response.body}');
-        return false;
-      }
+      // طباعة تفاصيل الاستجابة للتشخيص
+      print("\n===== API RESPONSE DETAILS =====");
+      print("📊 Status Code: ${response.statusCode}");
+      print("📄 Response Body: ${response.body}");
+      print("=================================\n");
+
+      return response;
     } catch (e) {
-      print('Error updating profile: $e');
-      return false;
+      print("\n❌ API ERROR =====");
+      print("🔍 Error Type: ${e.runtimeType}");
+      print("📝 Error Details: $e");
+      print("=================================\n");
+
+      // إعادة توجيه الاستثناء ليتم التعامل معه في الدالة الأصلية
+      throw e;
     }
   }
 
@@ -40,6 +53,12 @@ class DoctorService {
           // 'Authorization': 'Bearer $token',
         },
       );
+
+      // طباعة تفاصيل الاستجابة للتشخيص
+      print("\n===== GET PROFILE RESPONSE =====");
+      print("📊 Status Code: ${response.statusCode}");
+      print("📄 Response Body: ${response.body}");
+      print("=================================\n");
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

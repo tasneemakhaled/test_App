@@ -48,10 +48,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   Doctor? _doctorData;
   bool _showUpdateForm = false; // Flag to control form visibility
 
-  // Form controllers
-  final TextEditingController _firstNameController = TextEditingController();
-  final TextEditingController _lastNameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
+  // Form controllers - Removed first name, last name, and email controllers
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _specializationController =
       TextEditingController();
@@ -228,17 +225,14 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
         // تحديث بيانات الاسم فقط إذا كانت القيم موجودة وغير فارغة
         if (firstName != '' && firstName.isNotEmpty) {
           _firstName = firstName;
-          _firstNameController.text = firstName;
         }
 
         if (lastName != '' && lastName.isNotEmpty) {
           _lastName = lastName;
-          _lastNameController.text = lastName;
         }
 
         if (email != null && email.isNotEmpty) {
           _email = email;
-          _emailController.text = email;
         }
 
         _role = role;
@@ -284,10 +278,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
 
   // Populate form fields with current data
   void _populateControllers() {
-    // Always update all controllers with current state values
-    _firstNameController.text = _firstName;
-    _lastNameController.text = _lastName;
-    _emailController.text = _email;
+    // Only update controller values for fields we're keeping
     _phoneController.text = _phoneNumber;
     _specializationController.text = _specialization;
     _licenseController.text = _doctorLicense;
@@ -298,20 +289,14 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     _certificatesController.text = _certificates;
   }
 
-  // Save changes
-  // Save changes
-  // اضف هذه الدالة المعدلة إلى الملف doctorhomepage.dart
-
+  // Save changes - Modified to remove first name, last name, and email fields
   Future<void> _saveProfile() async {
     try {
       setState(() {
         _isLoading = true;
       });
 
-      // تحديث متغيرات الحالة من وحدات التحكم
-      _firstName = _firstNameController.text;
-      _lastName = _lastNameController.text;
-      _email = _emailController.text;
+      // تحديث متغيرات الحالة من وحدات التحكم - removed first name, last name, and email
       _phoneNumber = _phoneController.text;
       _specialization = _specializationController.text;
       _doctorLicense = _licenseController.text;
@@ -321,15 +306,16 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
       _yearsOfExperience = int.tryParse(_yearsController.text) ?? 0;
       _certificates = _certificatesController.text;
 
-      // الحصول على doctorId من التخزين أو الافتراضي إلى 0
+      // الحصول على doctorId من التخزين أو الافتراضي إلى 1
       final doctorIdStr = await _storageService.getDoctorId();
-      final doctorId = doctorIdStr != null ? int.tryParse(doctorIdStr) ?? 0 : 0;
+      final doctorId = doctorIdStr != null ? int.tryParse(doctorIdStr) ?? 1 : 1;
 
+      // إنشاء كائن محدث للطبيب - keeping current values for first name, last name, and email
       final updatedDoctor = Doctor(
         doctorId: doctorId,
-        firstName: _firstName,
-        lastName: _lastName,
-        email: _email,
+        firstName: _firstName, // Keep current value
+        lastName: _lastName, // Keep current value
+        email: _email, // Keep current value
         phoneNumber: _phoneNumber,
         specialization: _specialization,
         doctorLicense: _doctorLicense,
@@ -340,8 +326,8 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
         certificates: _certificates,
       );
 
-      // طباعة البيانات التي سيتم إرسالها إلى واجهة برمجة التطبيقات للتصحيح
-      print("\n===== SENDING PROFILE DATA TO API =====");
+      // طباعة البيانات التي سيتم إرسالها للتصحيح
+      print("\n===== SENDING PROFILE DATA =====");
       print(
           "👤 Name: '${updatedDoctor.firstName}' '${updatedDoctor.lastName}'");
       print("📧 Email: '${updatedDoctor.email}'");
@@ -349,11 +335,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
       print("🏥 Specialization: '${updatedDoctor.specialization}'");
       print("=================================\n");
 
-      // حفظ البيانات محليًا قبل استدعاء API
-      // هذا يضمن أن البيانات ستكون متاحة حتى لو فشل الاتصال بالخادم
-      await _storageService.saveFirstName(_firstName);
-      await _storageService.saveLastName(_lastName);
-      await _storageService.saveEmail(_email);
+      // No need to save first name, last name, and email since we're not updating them
 
       // حفظ doctorId إذا لم يكن محفوظًا بالفعل
       if (doctorId > 0) {
@@ -361,42 +343,98 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
       }
 
       // استدعاء واجهة برمجة التطبيقات لتحديث الملف الشخصي
-      final success = await _doctorService.completeProfile(updatedDoctor);
+      final response = await _doctorService.completeProfile(updatedDoctor);
 
-      if (success) {
-        // إخفاء النموذج بعد التحديث الناجح
-        setState(() {
+      // تقييم نجاح العملية بناءً على رمز الحالة
+      final success = response.statusCode == 200;
+
+      // طباعة معلومات إضافية للتشخيص
+      print("\n===== PROFILE UPDATE RESULT =====");
+      print("✅ Success: $success");
+      print("🔢 Status Code: ${response.statusCode}");
+      print("📝 Response: ${response.body}");
+      print("=================================\n");
+
+      // تحديث واجهة المستخدم بعد الإرسال
+      setState(() {
+        _isLoading = false;
+
+        if (success) {
+          // إخفاء النموذج بعد التحديث الناجح
           _showUpdateForm = false;
-        });
 
-        // عرض رسالة نجاح مع المعلومات المحدثة
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('تم تحديث الملف الشخصي بنجاح'),
-            duration: Duration(seconds: 2),
-          ),
-        );
+          // تحديث بيانات الطبيب المعروضة في الصفحة
+          _doctorData = updatedDoctor;
 
-        // تأكد من أن بطاقة معلومات الطبيب مرئية بعد الحفظ
-        setState(() {
-          _isLoading = false;
-        });
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('فشل تحديث الملف الشخصي')),
-        );
-        setState(() {
-          _isLoading = false;
-        });
-      }
+          // عرض رسالة نجاح
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.white),
+                    SizedBox(width: 10),
+                    Text('تم تحديث الملف الشخصي بنجاح'),
+                  ],
+                ),
+                backgroundColor: Colors.green,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          });
+
+          // تحديث معلومات الدرج الجانبي أيضًا
+          _scaffoldKey.currentState?.closeDrawer();
+        } else {
+          // عرض رسالة خطأ
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    Icon(Icons.error, color: Colors.white),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                          'فشل تحديث الملف الشخصي - كود الاستجابة: ${response.statusCode}'),
+                    ),
+                  ],
+                ),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 4),
+              ),
+            );
+          });
+        }
+      });
     } catch (e) {
-      print("❌ Failed to update profile: $e");
+      print("\n❌ PROFILE UPDATE ERROR =====");
+      print("📝 Error Details: $e");
+      print("=================================\n");
+
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('خطأ: فشل تحديث الملف الشخصي')),
-      );
+
+      // عرض رسالة خطأ مع معلومات إضافية
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error, color: Colors.white),
+                SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                      'حدث خطأ في الاتصال بالخادم، يرجى المحاولة مرة أخرى'),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 4),
+          ),
+        );
+      });
     }
   }
 
@@ -624,21 +662,6 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                         ),
                       ),
 
-                      // Display name with better visibility
-                      // Center(
-                      //   child: Padding(
-                      //     padding: const EdgeInsets.only(top: 12.0),
-                      //     child: Text(
-                      //       fullName.isEmpty ? 'Doctor' : fullName,
-                      //       style: TextStyle(
-                      //         color: Colors.blueGrey.shade800,
-                      //         fontSize: 22,
-                      //         fontWeight: FontWeight.bold,
-                      //       ),
-                      //     ),
-                      //   ),
-                      // ),
-
                       // Display email with better visibility
                       Center(
                         child: Padding(
@@ -783,34 +806,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                         ),
                         SizedBox(height: 12),
 
-                        // Add name fields
-                        TextFormField(
-                          controller: _firstNameController,
-                          decoration: InputDecoration(
-                            labelText: 'First Name',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        SizedBox(height: 12),
-
-                        TextFormField(
-                          controller: _lastNameController,
-                          decoration: InputDecoration(
-                            labelText: 'Last Name',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        SizedBox(height: 12),
-
-                        TextFormField(
-                          controller: _emailController,
-                          decoration: InputDecoration(
-                            labelText: 'Email',
-                            border: OutlineInputBorder(),
-                          ),
-                          keyboardType: TextInputType.emailAddress,
-                        ),
-                        SizedBox(height: 12),
+                        // Removed first name, last name, and email text fields
 
                         TextFormField(
                           controller: _phoneController,
