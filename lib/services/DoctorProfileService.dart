@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import '../models/doctorModels/UpdateProfileModel.dart';
 
 class DoctorService {
-  final String baseUrl = "http://192.168.1.13:8081";
+  final String baseUrl = "http://192.168.1.10:8081";
 
   // Function to update doctor profile
   Future<http.Response> completeProfile(Doctor doctor) async {

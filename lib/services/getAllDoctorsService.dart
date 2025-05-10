@@ -7,7 +7,7 @@ import '../models/doctorModels/AllDoctorsModel.dart';
 
 class Getalldoctorsservice {
   Dio dio = Dio();
-  final String baseUrl = "http://192.168.1.13:8081";
+  final String baseUrl = "http://192.168.1.10:8081";
   Future<List<AllDoctorsModel>> getAllDoctors() async {
     try {
       String? token = await StorageService().getToken(); // احصلي على التوكن

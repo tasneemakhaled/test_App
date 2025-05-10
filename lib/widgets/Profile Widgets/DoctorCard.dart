@@ -1,65 +1,93 @@
 import 'package:flutter/material.dart';
-import '../../views/DoctorViews/doctorhomepage.dart';
-import '../../views/payment/paymentmethod.dart';
 
 class DoctorCard extends StatelessWidget {
   final String name;
   final String specialty;
   final String image;
   final VoidCallback onSubscribe;
-
-  // Define your custom font family (e.g., KFontFamily)
-  static const String kFontFamily = 'KFontFamily';
+  final VoidCallback? onTap; // Added onTap parameter
 
   const DoctorCard({
+    Key? key,
     required this.name,
     required this.specialty,
     required this.image,
     required this.onSubscribe,
-  });
+    this.onTap,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 3,
-      margin: EdgeInsets.symmetric(vertical: 8),
-      shape: RoundedRectangleBorder(
+      elevation: 4,
+      margin: EdgeInsets.only(bottom: 15),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: onTap, // Make the whole card clickable
         borderRadius: BorderRadius.circular(12),
-      ),
-      color: Colors.blueGrey.shade500, // Set the background color
-      child: ListTile(
-        contentPadding: EdgeInsets.all(12),
-        leading: GestureDetector(
-          onTap: () {
-            // Navigate to DoctorHomeView when the image is tapped
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => DoctorHomeScreen()),
-            );
-          },
-          child: CircleAvatar(
-            radius: 30,
-            backgroundImage: NetworkImage(image),
+        splashColor: Colors.blueGrey.withOpacity(0.3),
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            children: [
+              // Doctor image
+              CircleAvatar(
+                radius: 40,
+                backgroundImage: NetworkImage(image),
+              ),
+              SizedBox(width: 16),
+              // Doctor info
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 5),
+                    Text(
+                      specialty,
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 16,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    // Hint text to show the card is clickable
+                    Text(
+                      'Tap to view details',
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontSize: 12,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Subscribe button
+              ElevatedButton(
+                onPressed: () {
+                  // Use a future to prevent the card's onTap from being triggered
+                  Future.microtask(() => onSubscribe());
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueGrey,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text(
+                  'Subscribe',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ],
           ),
-        ),
-        title: Text(
-          name,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            fontFamily: kFontFamily, // Set the font family
-          ),
-        ),
-        subtitle: Text(specialty),
-        trailing: ElevatedButton(
-          onPressed: () {
-            // Navigate to PaymentPage when "Book Now" is clicked
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => PaymentMethod()),
-            );
-          },
-          child: Text('Book Now'),
         ),
       ),
     );
