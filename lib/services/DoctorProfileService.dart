@@ -1,10 +1,11 @@
 // lib/services/doctor_service.dart
 import 'dart:convert';
+import 'package:auti_warrior_app/help/constants.dart';
 import 'package:http/http.dart' as http;
 import '../models/doctorModels/UpdateProfileModel.dart';
 
 class DoctorService {
-  final String baseUrl = "http://192.168.1.10:8081";
+  // final String baseUrl = "http://192.168.1.10:8081";
 
   // Function to update doctor profile
   Future<http.Response> completeProfile(Doctor doctor) async {

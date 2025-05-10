@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:auti_warrior_app/help/constants.dart';
 import 'package:auti_warrior_app/services/storage_service.dart';
 import 'package:dio/dio.dart';
 
@@ -7,7 +8,7 @@ import '../models/doctorModels/AllDoctorsModel.dart';
 
 class Getalldoctorsservice {
   Dio dio = Dio();
-  final String baseUrl = "http://192.168.1.10:8081";
+  // final String baseUrl = "http://192.168.1.10:8081";
   Future<List<AllDoctorsModel>> getAllDoctors() async {
     try {
       String? token = await StorageService().getToken(); // احصلي على التوكن

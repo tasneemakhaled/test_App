@@ -16,13 +16,12 @@ class MessageModel {
       content: json['content'],
     );
   }
-}
 
-//   Map<String, dynamic> toJson() {
-//     return {
-//       'senderEmail': senderEmail,
-//       'receiverEmail': receiverEmail,
-//       'content': content,
-//     };
-//   }
-// }
+  Map<String, dynamic> toJson() {
+    return {
+      'senderEmail': senderEmail,
+      'receiverEmail': receiverEmail,
+      'content': content,
+    };
+  }
+}

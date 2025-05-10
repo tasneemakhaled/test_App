@@ -1,11 +1,12 @@
 import 'dart:convert';
+import 'package:auti_warrior_app/help/constants.dart';
 import 'package:auti_warrior_app/models/AuthModels/LoginModel.dart';
 import 'package:auti_warrior_app/models/AuthModels/RegisterModel.dart';
 import 'package:http/http.dart' as http;
 import '../models/AuthModels/AuthResponse.dart';
 
 class AuthService {
-  final String baseUrl = "http://192.168.1.10:8081";
+  // final String baseUrl = "http://192.168.1.10:8081";
 
   /// 🟢 Register a new user
   Future<AuthResponse> register(RegisterModel registerModel) async {
