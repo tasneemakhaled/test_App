@@ -1,3 +1,4 @@
+import 'package:auti_warrior_app/views/chats/ChatsView.dart';
 import 'package:flutter/material.dart';
 import '../../models/doctorModels/AllDoctorsModel.dart';
 
@@ -101,32 +102,68 @@ class DoctorDetailsPage extends StatelessWidget {
 
             SizedBox(height: 20),
 
-            // Subscribe button
-            Center(
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  // Subscribe to doctor logic
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                          'Subscribed to Dr. ${doctor.firstName} ${doctor.lastName}'),
-                      backgroundColor: Colors.green,
+            // Buttons row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Subscribe button
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      // Subscribe to doctor logic
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                              'Subscribed to Dr. ${doctor.firstName} ${doctor.lastName}'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    },
+                    icon: Icon(Icons.add_circle_outline, color: Colors.white),
+                    label: Text(
+                      'Subscribe',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  );
-                },
-                icon: Icon(Icons.add_circle_outline, color: Colors.white),
-                label: Text(
-                  'Subscribe',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueGrey.shade600,
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                    ),
                   ),
                 ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueGrey.shade600,
-                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+
+                SizedBox(width: 12),
+
+                // Chat button
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      // Navigate to chat view with doctor email
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ChatsView(doctorEmail: doctor.email),
+                        ),
+                      );
+                    },
+                    icon: Icon(Icons.chat_bubble_outline, color: Colors.white),
+                    label: Text(
+                      'Chat',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green.shade600,
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ],
         ),
