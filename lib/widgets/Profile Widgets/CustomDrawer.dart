@@ -55,10 +55,10 @@ class CustomDrawer extends StatelessWidget {
           ListTile(
             onTap: () {
               Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => ChatsView()),
-              );
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(builder: (context) => ChatsView()),
+              // );
             },
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 20, vertical: 5),

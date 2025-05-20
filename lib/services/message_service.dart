@@ -1,89 +1,84 @@
 import 'dart:convert';
-import 'package:auti_warrior_app/help/constants.dart';
+import 'package:auti_warrior_app/help/constants.dart'; // Make sure baseUrl is defined here
 import 'package:auti_warrior_app/models/ChatModels/message_model.dart';
-import 'package:auti_warrior_app/services/storage_service.dart';
 import 'package:http/http.dart' as http;
 
 class MessageService {
-  final StorageService _storageService = StorageService();
+  // داخل MessageService.dart
+
   Future<List<MessageModel>> fetchMessages(
-      String senderEmail, String receiverEmail) async {
+      String currentUserEmail, String otherUserEmail) async {
+    List<MessageModel> allMessages = [];
+
     try {
-      final sentResponse = await http.get(
-        Uri.parse('$baseUrl/api/messages/$senderEmail/$receiverEmail'),
-      );
+      print(
+          'Fetching ALL messages between $currentUserEmail and $otherUserEmail (single API call)');
 
-      final receivedResponse = await http.get(
-        Uri.parse('$baseUrl/api/messages/$receiverEmail/$senderEmail'),
-      );
-
-      if (sentResponse.statusCode == 200 &&
-          receivedResponse.statusCode == 200) {
-        List sentData = jsonDecode(sentResponse.body);
-        List receivedData = jsonDecode(receivedResponse.body);
-
-        List allData = [...sentData, ...receivedData];
-        allData.sort((a, b) => a['timestamp'].compareTo(b['timestamp']));
-
-        return allData.map((e) => MessageModel.fromJson(e)).toList();
-      } else {
-        throw Exception("Failed to load messages");
-      }
-    } catch (e) {
-      print("Error fetching messages: $e");
-      throw Exception("Failed to load messages: $e");
-    }
-  }
-
-  Future<List<MessageModel>> fetchMessageHistory(String receiverEmail) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/messages/history?receiverEmail=$receiverEmail'),
-      );
+      // استدعِ الـ API مرة واحدة فقط. لا يهم الترتيب إذا كان الـ API يتعامل معها بشكل تبادلي.
+      // يمكنك استخدام أي ترتيب للإيميلات هنا.
+      final uri =
+          Uri.parse('$baseUrl/api/messages/$currentUserEmail/$otherUserEmail');
+      print('Attempting to GET: $uri');
+      final response = await http.get(uri);
+      print('Response (Single Call) - Status: ${response.statusCode}');
 
       if (response.statusCode == 200) {
-        List data = jsonDecode(response.body);
-        List<MessageModel> messages =
-            data.map((e) => MessageModel.fromJson(e)).toList();
-
-        if (messages.isNotEmpty) {
-          String senderEmail = messages.first.senderEmail;
-          if (senderEmail.isNotEmpty) {
-            await _storageService.saveSenderEmail(senderEmail);
-            print("✅ Saved senderEmail from history: $senderEmail");
-          } else {
-            print("⚠️ senderEmail in the first message is empty");
+        if (response.body.isNotEmpty) {
+          try {
+            List<dynamic> data = jsonDecode(response.body);
+            allMessages.addAll(data
+                .map((e) => MessageModel.fromJson(e as Map<String, dynamic>))
+                .toList());
+            print('Fetched ${data.length} messages in a single call.');
+          } catch (e) {
+            print(
+                "Error decoding JSON from single response: $e. Body: ${response.body}");
           }
         } else {
-          print("⚠️ No messages found in history");
+          print("Single response body is empty, though status is 200.");
         }
-
-        return messages;
       } else {
-        throw Exception("Failed to load message history");
+        print(
+            "Failed to load messages in single call. Status: ${response.statusCode}, Body: ${response.body}");
+        throw Exception(
+            "Failed to load messages. Status: ${response.statusCode}");
       }
+
+      // لا نحتاج إلى استدعاء ثانٍ إذا كان الاستدعاء الأول يرجع كل شيء
+
+      // افرز الرسائل التي تم جلبها
+      allMessages.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
+      print(
+          "Fetched a total of ${allMessages.length} messages (from single call). Sorted chronologically.");
+      return allMessages;
     } catch (e) {
-      print("Error fetching message history: $e");
-      throw Exception("Failed to load message history: $e");
+      print("Error in fetchMessages service: $e");
+      throw Exception("Failed to load messages due to an error: $e");
     }
   }
 
   Future<void> sendMessage(MessageModel message) async {
     try {
+      print('Sending message: ${message.toJson()}');
       final response = await http.post(
-        Uri.parse('$baseUrl/api/messages'),
+        Uri.parse(
+            '$baseUrl/api/messages'), // Endpoint for sending a new message
         headers: {"Content-Type": "application/json"},
         body: jsonEncode(message.toJson()),
       );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
-        print("Failed to send message: ${response.statusCode}");
-        print("Response body: ${response.body}");
-        throw Exception("Failed to send message: ${response.statusCode}");
+        // 201 Created is also a success
+        print(
+            "Failed to send message. Status: ${response.statusCode}, Body: ${response.body}");
+        throw Exception(
+            "Failed to send message: Server responded with ${response.statusCode}");
       }
+      print("Message sent successfully. Response: ${response.body}");
     } catch (e) {
       print("Error sending message: $e");
-      throw Exception("Failed to send message: $e");
+      throw Exception("Failed to send message due to an error: $e");
     }
   }
 }

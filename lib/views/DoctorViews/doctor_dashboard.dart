@@ -61,12 +61,12 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
           MaterialPageRoute(builder: (context) => MothersView()),
         );
         break;
-      case 1:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => ChatsView()),
-        );
-        break;
+      // case 1:
+      //   Navigator.push(
+      //     context,
+      //     MaterialPageRoute(builder: (context) => ChatsView()),
+      //   );
+      //   break;
       case 2:
         Navigator.push(
           context,
@@ -204,11 +204,11 @@ class _DoctorDashboardState extends State<DoctorDashboard> {
             context,
             MaterialPageRoute(builder: (context) => MothersView()),
           );
-        } else if (title == "Chat") {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => ChatsView()),
-          );
+          // } else if (title == "Chat") {
+          //   Navigator.push(
+          //     context,
+          //     MaterialPageRoute(builder: (context) => ChatsView()),
+          //   );
         } else if (title == "Profile") {
           Navigator.push(
             context,

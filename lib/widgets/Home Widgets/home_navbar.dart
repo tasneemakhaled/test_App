@@ -49,12 +49,12 @@ class HomeNavbar extends StatelessWidget {
               context,
               MaterialPageRoute(builder: (context) => ChatBot()),
             );
-          case 3: // "Doctors" tab
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => ChatsView()),
-            );
-            break;
+          // case 3: // "Doctors" tab
+          //   Navigator.push(
+          //     context,
+          //     MaterialPageRoute(builder: (context) => ChatsView()),
+          //   );
+          //   break;
           // Handle other tabs if needed
           default:
             break;
