@@ -1,4 +1,5 @@
 import 'package:auti_warrior_app/help/constants.dart';
+import 'package:auti_warrior_app/views/DoctorViews/doctor_dashboard.dart';
 import 'package:auti_warrior_app/views/RegisterationViews/forget_password1.dart';
 import 'package:auti_warrior_app/widgets/Registeration%20Widgets/login_form.dart';
 import 'package:flutter/material.dart';
@@ -116,7 +117,7 @@ class _LoginViewState extends State<LoginView> {
     if (role.toUpperCase().contains('DOCTOR')) {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => DoctorHomeScreen()),
+        MaterialPageRoute(builder: (context) => DoctorDashboard()),
         (route) => false,
       );
     } else if (role.toUpperCase().contains('MOTHER')) {

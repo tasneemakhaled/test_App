@@ -1,3 +1,4 @@
+import 'package:auti_warrior_app/views/DoctorViews/doctor_dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:auti_warrior_app/views/home_views/home_view.dart';
 import 'package:auti_warrior_app/views/DoctorViews/doctorhomepage.dart';
@@ -108,7 +109,7 @@ Future<void> handleSignUp(
               milliseconds: 500)); // تأخير صغير للتأكد من أن SnackBar مرئي
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => DoctorHomeScreen()),
+            MaterialPageRoute(builder: (context) => DoctorDashboard()),
             (route) => false,
           );
         } else if (loginResponse.role == 'MOTHER') {
@@ -162,7 +163,7 @@ Future<void> handleSignUp(
           milliseconds: 500)); // Small delay to ensure SnackBar is visible
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => DoctorHomeScreen()),
+        MaterialPageRoute(builder: (context) => DoctorDashboard()),
         (route) => false,
       );
     } else if (response.role == 'MOTHER') {

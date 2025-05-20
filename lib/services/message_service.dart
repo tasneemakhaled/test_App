@@ -1,21 +1,18 @@
 import 'dart:convert';
 import 'package:auti_warrior_app/help/constants.dart';
 import 'package:auti_warrior_app/models/ChatModels/message_model.dart';
+import 'package:auti_warrior_app/services/storage_service.dart';
 import 'package:http/http.dart' as http;
 
 class MessageService {
-  // This should be defined in your constants.dart file
-  // final String baseUrl = "http://your-backend-url";
-
+  final StorageService _storageService = StorageService();
   Future<List<MessageModel>> fetchMessages(
       String senderEmail, String receiverEmail) async {
     try {
-      // Get messages sent by the sender to receiver
       final sentResponse = await http.get(
         Uri.parse('$baseUrl/api/messages/$senderEmail/$receiverEmail'),
       );
 
-      // Get messages sent by the receiver to sender
       final receivedResponse = await http.get(
         Uri.parse('$baseUrl/api/messages/$receiverEmail/$senderEmail'),
       );
@@ -25,11 +22,8 @@ class MessageService {
         List sentData = jsonDecode(sentResponse.body);
         List receivedData = jsonDecode(receivedResponse.body);
 
-        // Combine both lists
         List allData = [...sentData, ...receivedData];
-
-        // Sort messages by timestamp if your model has one
-        // allData.sort((a, b) => a['timestamp'].compareTo(b['timestamp']));
+        allData.sort((a, b) => a['timestamp'].compareTo(b['timestamp']));
 
         return allData.map((e) => MessageModel.fromJson(e)).toList();
       } else {
@@ -38,6 +32,39 @@ class MessageService {
     } catch (e) {
       print("Error fetching messages: $e");
       throw Exception("Failed to load messages: $e");
+    }
+  }
+
+  Future<List<MessageModel>> fetchMessageHistory(String receiverEmail) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/messages/history?receiverEmail=$receiverEmail'),
+      );
+
+      if (response.statusCode == 200) {
+        List data = jsonDecode(response.body);
+        List<MessageModel> messages =
+            data.map((e) => MessageModel.fromJson(e)).toList();
+
+        if (messages.isNotEmpty) {
+          String senderEmail = messages.first.senderEmail;
+          if (senderEmail.isNotEmpty) {
+            await _storageService.saveSenderEmail(senderEmail);
+            print("✅ Saved senderEmail from history: $senderEmail");
+          } else {
+            print("⚠️ senderEmail in the first message is empty");
+          }
+        } else {
+          print("⚠️ No messages found in history");
+        }
+
+        return messages;
+      } else {
+        throw Exception("Failed to load message history");
+      }
+    } catch (e) {
+      print("Error fetching message history: $e");
+      throw Exception("Failed to load message history: $e");
     }
   }
 

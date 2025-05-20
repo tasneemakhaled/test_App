@@ -144,8 +144,7 @@ class DoctorDetailsPage extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              ChatsView(doctorEmail: doctor.email),
+                          builder: (context) => ChatsView(email: doctor.email),
                         ),
                       );
                     },

@@ -1,6 +1,7 @@
 import 'package:auti_warrior_app/services/AuthService.dart';
 import 'package:auti_warrior_app/services/storage_service.dart';
 import 'package:auti_warrior_app/models/AuthModels/LoginModel.dart';
+import 'package:auti_warrior_app/views/DoctorViews/doctor_dashboard.dart';
 import 'package:auti_warrior_app/views/DoctorViews/doctorhomepage.dart';
 
 import 'package:auti_warrior_app/widgets/Validation/app_regex.dart';
@@ -107,7 +108,7 @@ class _LoginFormState extends State<LoginForm> {
     if (cleanRole.toUpperCase().contains('DOCTOR')) {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => DoctorHomeScreen()),
+        MaterialPageRoute(builder: (context) => DoctorDashboard()),
         (route) => false,
       );
     } else if (cleanRole.toUpperCase().contains('MOTHER')) {

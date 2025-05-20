@@ -1,3 +1,4 @@
+import 'package:auti_warrior_app/views/DoctorViews/doctor_dashboard.dart';
 import 'package:auti_warrior_app/views/DoctorViews/doctorhomepage.dart';
 import 'package:flutter/material.dart';
 import 'package:auti_warrior_app/services/storage_service.dart';
@@ -18,7 +19,7 @@ void main() async {
     if (role == 'MOTHER') {
       startScreen = const HomeView();
     } else if (role == 'DOCTOR') {
-      startScreen = DoctorHomeScreen();
+      startScreen = DoctorDashboard();
     } else {
       startScreen = LoginView();
     }
@@ -47,7 +48,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/login': (context) => LoginView(),
         '/home': (context) => const HomeView(),
-        '/doctorHome': (context) => DoctorHomeScreen(),
+        '/doctorHome': (context) => DoctorDashboard(),
       },
     );
   }

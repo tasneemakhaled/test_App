@@ -75,6 +75,19 @@ class StorageService {
     return prefs.getString(emailKey);
   }
 
+  static const String senderEmailKey = 'sender_email';
+
+  Future<void> saveSenderEmail(String email) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(senderEmailKey, email);
+    print("📦 sender_email saved: $email");
+  }
+
+  Future<String?> getSenderEmail() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(senderEmailKey);
+  }
+
   Future<String> getFirstName() async {
     final prefs = await SharedPreferences.getInstance();
     final firstName = prefs.getString(firstNameKey) ?? "";

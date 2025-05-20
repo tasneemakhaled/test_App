@@ -609,11 +609,11 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
           ),
         ],
       ),
-      drawer: CustomDrawer(
-        userName: fullName.isEmpty ? 'Doctor' : fullName,
-        imageUrl: _profileImageFile == null ? _profileImageUrl : null,
-        imageFile: _profileImageFile,
-      ),
+      // drawer: CustomDrawer(
+      //   userName: fullName.isEmpty ? 'Doctor' : fullName,
+      //   imageUrl: _profileImageFile == null ? _profileImageUrl : null,
+      //   imageFile: _profileImageFile,
+      // ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : RefreshIndicator(

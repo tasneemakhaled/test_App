@@ -6,9 +6,9 @@ import 'package:auti_warrior_app/services/message_service.dart';
 import 'package:auti_warrior_app/services/storage_service.dart';
 
 class ChatsView extends StatefulWidget {
-  final String? doctorEmail;
+  final String? email;
 
-  ChatsView({super.key, this.doctorEmail});
+  ChatsView({super.key, this.email});
 
   @override
   State<ChatsView> createState() => _ChatsViewState();
@@ -49,11 +49,9 @@ class _ChatsViewState extends State<ChatsView> {
       });
 
       print("Current user email from storage: $userEmail");
-      print("Doctor email: ${widget.doctorEmail}");
+      print("Doctor email: ${widget.email}");
 
-      if (userEmail != null &&
-          userEmail!.isNotEmpty &&
-          widget.doctorEmail != null) {
+      if (userEmail != null && userEmail!.isNotEmpty && widget.email != null) {
         _fetchMessages();
       }
     } catch (e) {
@@ -74,7 +72,7 @@ class _ChatsViewState extends State<ChatsView> {
   }
 
   Future<void> _fetchMessages() async {
-    if (!_isValidEmail(userEmail) || !_isValidEmail(widget.doctorEmail)) {
+    if (!_isValidEmail(userEmail) || !_isValidEmail(widget.email)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text('Invalid email addresses. Please check your login.')),
@@ -88,8 +86,8 @@ class _ChatsViewState extends State<ChatsView> {
       });
 
       final fetchedMessages = await _messageService.fetchMessages(
+        widget.email!,
         userEmail!,
-        widget.doctorEmail!,
       );
 
       setState(() {
@@ -144,16 +142,16 @@ class _ChatsViewState extends State<ChatsView> {
       }
     }
 
-    if (widget.doctorEmail == null || widget.doctorEmail!.isEmpty) {
+    if (widget.email == null || widget.email!.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text('Cannot send message: Doctor email is missing.')),
+            content: Text('Cannot send message: Recceiver email is missing.')),
       );
       return;
     }
 
     // Validate email formats
-    if (!_isValidEmail(userEmail) || !_isValidEmail(widget.doctorEmail)) {
+    if (!_isValidEmail(userEmail) || !_isValidEmail(widget.email)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text('Invalid email addresses. Please check your login.')),
@@ -161,12 +159,12 @@ class _ChatsViewState extends State<ChatsView> {
       return;
     }
 
-    print("Sending message from: $userEmail to: ${widget.doctorEmail}");
+    print("Sending message from: $userEmail to: ${widget.email}");
     print("Message content: $messageText");
 
     final newMessage = MessageModel(
       senderEmail: userEmail!,
-      receiverEmail: widget.doctorEmail!,
+      receiverEmail: widget.email!,
       content: messageText,
     );
 
@@ -230,14 +228,14 @@ class _ChatsViewState extends State<ChatsView> {
       backgroundColor: Colors.blueGrey.shade50,
       appBar: AppBar(
         backgroundColor: Colors.blueGrey,
-        title: Text(widget.doctorEmail != null ? 'Chat with Doctor' : 'Chat'),
+        title: Text(widget.email != null ? 'Chat With' : 'Chat'),
         actions: [
-          if (widget.doctorEmail != null)
+          if (widget.email != null)
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Center(
                 child: Text(
-                  widget.doctorEmail!,
+                  widget.email!,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,
@@ -254,12 +252,12 @@ class _ChatsViewState extends State<ChatsView> {
                 // Debug information - remove in production
                 if (userEmail == null ||
                     userEmail!.isEmpty ||
-                    widget.doctorEmail == null)
+                    widget.email == null)
                   Container(
                     color: Colors.red.shade100,
                     padding: EdgeInsets.all(8),
                     child: Text(
-                      'Debug: Email missing! User: $userEmail, Doctor: ${widget.doctorEmail}',
+                      'Debug: Email missing! User: $userEmail, Receiver: ${widget.email}',
                       style: TextStyle(color: Colors.red),
                     ),
                   ),

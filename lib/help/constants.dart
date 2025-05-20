@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 const KColor = Color(0xff94A5B4);
 const KBackgroundimage = 'assets/images/background.png';
 const KFontFamily = 'ADLaM Display';
-const String baseUrl = "http://192.168.1.4:8081";
+const String baseUrl = "http://192.168.1.7:8081";
 // Global screen width variable
 late double kScreenWidth;
 
