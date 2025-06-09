@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- أضيفي إذن الإنترنت هنا إذا لم يكن موجودًا على مستوى أعلى أو في ملف آخر (عادة يكون هنا) -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
         android:label="auti_warrior_app"
         android:name="${applicationName}"
@@ -31,15 +34,34 @@
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
-    <!-- Required to query activities that can process text, see:
-         https://developer.android.com/training/package-visibility and
-         https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
 
-         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
+    <!-- قسم الـ queries المعدل -->
     <queries>
+        <!-- هذا الـ intent كان موجودًا بالفعل لديكِ، وهو خاص بـ PROCESS_TEXT -->
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>
         </intent>
+
+        <!-- الإضافات الجديدة لتيليجرام -->
+        <!-- للسماح بفتح روابط HTTPS بشكل عام -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="https" />
+        </intent>
+        <!-- تحديد النية لفتح روابط تيليجرام (t.me) -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.BROWSABLE"/>
+            <data android:scheme="https" android:host="t.me"/>
+        </intent>
+        <!-- تحديد النية لفتح الـ scheme الخاص بتيليجرام (tg://) -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="tg" />
+        </intent>
+         <!-- يمكنك أيضًا إضافة هذا للاستعلام عن حزمة تيليجرام مباشرة (اختياري) -->
+        <!-- <package android:name="org.telegram.messenger" /> -->
+
     </queries>
 </manifest>
