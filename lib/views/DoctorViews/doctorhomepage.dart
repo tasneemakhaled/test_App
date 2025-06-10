@@ -1,19 +1,24 @@
 import 'dart:developer';
 
-import 'package:auti_warrior_app/views/DoctorViews/user_photo_name.dart';
+import 'package:auti_warrior_app/views/DoctorViews/update_profile_form.dart';
+
+import 'package:auti_warrior_app/views/DoctorViews/upload_certificate_view.dart';
+import 'package:auti_warrior_app/views/DoctorViews/upload_choice_view.dart';
+import 'package:auti_warrior_app/views/DoctorViews/upload_post_view.dart';
+import 'package:auti_warrior_app/widgets/DoctorWidgets/build_image_widget.dart';
+import 'package:auti_warrior_app/widgets/DoctorWidgets/doctor_certificates_widget.dart';
+import 'package:auti_warrior_app/widgets/DoctorWidgets/doctor_information_display_widget.dart';
+import 'package:auti_warrior_app/widgets/DoctorWidgets/doctor_post_widget.dart';
+import 'package:auti_warrior_app/widgets/DoctorWidgets/doctor_profile_header_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:image_picker/image_picker.dart'; // Added for _pickProfileImage
 import 'dart:io';
 
 import '../../help/constants.dart';
 import '../../models/doctorModels/UpdateProfileModel.dart';
-
 import '../../services/DoctorProfileService.dart';
 import '../../services/storage_service.dart';
 import '../../widgets/Profile Widgets/CustomDrawer.dart';
-import 'upload_certificate_view.dart';
-import 'upload_post_view.dart';
-import 'upload_choice_view.dart';
 
 class DoctorHomeScreen extends StatefulWidget {
   @override
@@ -25,42 +30,19 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   final DoctorService _doctorService = DoctorService();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // Basic user information
-  String _firstName = ''; // Will be loaded from API
-  String _lastName = ''; // Will be loaded from API
-  String _email = ''; // Will be loaded from API
-  String _role = 'doctor'; // Default value
-  String _profileImageUrl =
-      'https://xsgames.co/randomusers/assets/avatars/male/64.jpg'; // Default doctor image
-
-  // Doctor specific information (will be loaded from API)
-  String _phoneNumber = '';
-  String _specialization = '';
-  String _doctorLicense = '';
-  String _dateOfBirth = '';
-  String _address = '';
-  String _academicDegree = '';
-  int _yearsOfExperience = 0;
-  String _certificates = '';
-
-  File? _profileImageFile;
-  bool _isLoading = true; // Start with loading state
   Doctor? _doctorData;
-  bool _showUpdateForm = false; // Flag to control form visibility
 
-  // Form controllers - Removed first name, last name, and email controllers
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _specializationController =
-      TextEditingController();
-  final TextEditingController _licenseController = TextEditingController();
-  final TextEditingController _birthDateController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _degreeController = TextEditingController();
-  final TextEditingController _yearsController = TextEditingController();
-  final TextEditingController _certificatesController = TextEditingController();
+  String _firstName = '';
+  String _lastName = '';
+  String _email = '';
+  String _role = 'doctor';
+  String _profileImageUrl =
+      'https://xsgames.co/randomusers/assets/avatars/male/64.jpg';
+  File? _profileImageFile;
+  bool _isLoading = true;
 
-  // Default certificates
-  List<Map<String, dynamic>> certificates = [
+  // Default certificates (can also be fetched if part of Doctor model later)
+  List<Map<String, dynamic>> certificatesList = [
     {
       'id': '1',
       'title': 'Specialization in Autism Spectrum Disorder',
@@ -84,8 +66,8 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     },
   ];
 
-  // Default posts
-  List<Map<String, dynamic>> posts = [
+  // Default posts (can also be fetched if part of Doctor model later)
+  List<Map<String, dynamic>> postsList = [
     {
       'id': '1',
       'text':
@@ -114,327 +96,178 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   @override
   void initState() {
     super.initState();
-    // تهيئة وحدات التحكم في النموذج
-    _populateControllers();
-    // تحميل بيانات المستخدم
     _loadUserData();
   }
 
+  void _updateDisplayDataFromDoctor(Doctor? doctor) {
+    if (doctor == null) {
+      _firstName = '';
+      _lastName = '';
+      _email = '';
+      _doctorData = null;
+      return;
+    }
+    _doctorData = doctor;
+    _firstName = doctor.firstName ?? '';
+    _lastName = doctor.lastName ?? '';
+    _email = doctor.email ?? '';
+    // _role = doctor.role ?? 'doctor'; // If role comes from API
+    // If certificatesList and postsList are part of the Doctor model, update them here.
+    // e.g., certificatesList = doctor.certificatesList ?? [];
+    // postsList = doctor.postsList ?? [];
+  }
+
   Future<void> _loadUserData() async {
+    if (!mounted) return;
+    setState(() {
+      _isLoading = true;
+    });
     try {
-      setState(() {
-        _isLoading = true;
-      });
-
-      // STEP 1: Get doctorId from storage
       final doctorIdStr = await _storageService.getDoctorId();
-
-      // Handle case where doctorId is null or not available
       if (doctorIdStr == null || doctorIdStr.isEmpty) {
-        print("⚠️ Doctor ID not found in storage");
-
-        // Load basic data from storage as a fallback
-        await _loadFromLocalStorage();
-
-        setState(() {
-          _isLoading = false;
-        });
+        log("⚠️ Doctor ID not found in storage. Attempting to load basic info.");
+        final email = await _storageService.getEmail() ?? '';
+        final firstName = await _storageService.getFirstName() ?? '';
+        final lastName = await _storageService.getLastName() ?? '';
+        if (mounted) {
+          setState(() {
+            _email = email;
+            _firstName = firstName;
+            _lastName = lastName;
+            if (firstName.isNotEmpty ||
+                lastName.isNotEmpty ||
+                email.isNotEmpty) {
+              _doctorData = Doctor(
+                doctorId: 0,
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                phoneNumber: '',
+                specialization: '',
+                doctorLicense: '',
+                dateOfBirth: '',
+                address: '',
+                academicDegree: '',
+                yearsOfExperience: 0,
+                certificates: '',
+              );
+            }
+          });
+        }
         return;
       }
 
-      final doctorId = int.tryParse(doctorIdStr) ?? 1;
-      print("👨‍⚕️ Fetching profile for doctor ID: $doctorId");
-
-      // STEP 2: Call API to get doctor profile
-      final doctorData = await _doctorService.getDoctorProfile(doctorId);
-
-      if (doctorData != null) {
-        setState(() {
-          _doctorData = doctorData;
-
-          // Update profile information from API
-          // _firstName = doctorData.firstName;
-          // _lastName = doctorData.lastName;
-          // _email = doctorData.email;
-
-          // Set doctor specific data
-          _phoneNumber = doctorData.phoneNumber!;
-          _specialization = doctorData.specialization;
-          _doctorLicense = doctorData.doctorLicense;
-          _dateOfBirth = doctorData.dateOfBirth;
-          _address = doctorData.address;
-          _academicDegree = doctorData.academicDegree;
-          _yearsOfExperience = doctorData.yearsOfExperience;
-          _certificates = doctorData.certificates;
-
-          // Save to local storage for future use
-          _storageService.saveFirstName(_firstName);
-          _storageService.saveLastName(_lastName);
-          _storageService.saveEmail(_email);
-
-          // Populate form controllers with the data
-          _populateControllers();
-        });
-
-        log("👨‍⚕️ Doctor profile loaded successfully from API");
-      } else {
-        log("⚠️ Doctor profile not found or empty response");
-        // Fallback to local storage if API fails
-        await _loadFromLocalStorage();
+      final doctorId = int.tryParse(doctorIdStr);
+      if (doctorId == null) {
+        log("⚠️ Invalid Doctor ID format in storage.");
+        return;
       }
 
-      setState(() {
-        _isLoading = false;
-      });
+      log("👨‍⚕️ Fetching profile for doctor ID: $doctorId");
+      final fetchedDoctorData = await _doctorService.getDoctorProfile(doctorId);
 
-      _logLoadedData(); // Log all the data we've loaded
+      if (fetchedDoctorData != null) {
+        if (mounted) {
+          setState(() {
+            _updateDisplayDataFromDoctor(fetchedDoctorData);
+          });
+        }
+        await _storageService.saveFirstName(fetchedDoctorData.firstName ?? '');
+        await _storageService.saveLastName(fetchedDoctorData.lastName ?? '');
+        await _storageService.saveEmail(fetchedDoctorData.email ?? '');
+        log("👨‍⚕️ Doctor profile loaded successfully from API.");
+      } else {
+        log("⚠️ Doctor profile not found from API. Attempting to load basic info.");
+        final email = await _storageService.getEmail() ?? '';
+        final firstName = await _storageService.getFirstName() ?? '';
+        final lastName = await _storageService.getLastName() ?? '';
+        if (mounted) {
+          setState(() {
+            _email = email;
+            _firstName = firstName;
+            _lastName = lastName;
+          });
+        }
+      }
     } catch (e) {
-      print("❌ Error loading user data: $e");
-
-      // Fallback to local storage if API fails
-      await _loadFromLocalStorage();
-
-      setState(() {
-        _isLoading = false;
-      });
-
-      // Show error message to user
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      log("❌ Error loading user data (HomeScreen): $e");
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text('Failed to load profile data. Please try again.')),
+              content: Text(
+                  'Failed to load profile. Displaying cached data or try again.')),
         );
-      });
+      }
+    } finally {
+      if (mounted)
+        setState(() {
+          _isLoading = false;
+        });
+      _logLoadedData();
     }
   }
 
-// Helper method to load data from local storage
-  Future<bool> _loadFromLocalStorage() async {
-    try {
-      // استرجاع البيانات من التخزين المحلي مع معالجة القيم الفارغة
-      final email = await _storageService.getEmail();
-      final firstName = await _storageService.getFirstName();
-      final lastName = await _storageService.getLastName();
-      final role = await _storageService.getRole() ?? 'doctor';
-
-      print(
-          "📦 Storage data - Email: $email, First: $firstName, Last: $lastName, Role: $role");
-
-      // تحديث متغيرات الحالة والتحكم فقط إذا كانت القيم غير فارغة
-      setState(() {
-        // تحديث بيانات الاسم فقط إذا كانت القيم موجودة وغير فارغة
-        if (firstName != '' && firstName.isNotEmpty) {
-          _firstName = firstName;
-        }
-
-        if (lastName != '' && lastName.isNotEmpty) {
-          _lastName = lastName;
-        }
-
-        if (email != null && email.isNotEmpty) {
-          _email = email;
-        }
-
-        _role = role;
-      });
-
-      // طباعة بيانات التصحيح بعد التحديث
-      log("📧 Email loaded from local storage: $_email");
-      log("👤 First name loaded from local storage: $_firstName");
-      log("👤 Last name loaded from local storage: $_lastName");
-
-      // التحقق من وجود بيانات فعلية
-      return _email.isNotEmpty || _firstName.isNotEmpty || _lastName.isNotEmpty;
-    } catch (e) {
-      log("❌ Error loading from local storage: $e");
-      return false;
-    }
-  } // Helper to log all loaded data for debugging
-
   void _logLoadedData() {
-    log("\n===== DOCTOR PROFILE DATA =====");
-    log("👤 Name: '$_firstName' '$_lastName'");
-    log("📧 Email: '$_email'");
-    log("👨‍⚕️ Role: '$_role'");
-    log("☎️ Phone: '$_phoneNumber'");
-    log("🏥 Specialization: '$_specialization'");
-    log("🔍 License: '$_doctorLicense'");
+    log("\n===== DOCTOR DATA (HomeScreen) =====");
+    if (_doctorData != null) {
+      log("👤 Name: '${_doctorData!.firstName}' '${_doctorData!.lastName}'");
+      log("📧 Email: '${_doctorData!.email}'");
+      log("☎️ Phone: '${_doctorData!.phoneNumber}'");
+      log("🎓 Degree: '${_doctorData!.academicDegree}'");
+      log("🏥 Specialization: '${_doctorData!.specialization}'");
+      // Log other fields from _doctorData as needed
+    } else {
+      log("No full doctor data loaded. Basic info: Name: '$_firstName $_lastName', Email: '$_email'");
+    }
     log("============================\n");
   }
 
-  // Toggle the update form visibility
-  void _toggleUpdateForm() {
-    setState(() {
-      _showUpdateForm = !_showUpdateForm;
-
-      // Scroll to form if it's visible
-      if (_showUpdateForm) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          // Scroll to form logic here if needed
-        });
-      }
-    });
-  }
-
-  // Populate form fields with current data
-  void _populateControllers() {
-    // Only update controller values for fields we're keeping
-    _phoneController.text = _phoneNumber;
-    _specializationController.text = _specialization;
-    _licenseController.text = _doctorLicense;
-    _birthDateController.text = _dateOfBirth;
-    _addressController.text = _address;
-    _degreeController.text = _academicDegree;
-    _yearsController.text = _yearsOfExperience.toString();
-    _certificatesController.text = _certificates;
-  }
-
-  // Save changes - Modified to remove first name, last name, and email fields
-  Future<void> _saveProfile() async {
-    try {
-      setState(() {
-        _isLoading = true;
-      });
-
-      // تحديث متغيرات الحالة من وحدات التحكم - removed first name, last name, and email
-      _phoneNumber = _phoneController.text;
-      _specialization = _specializationController.text;
-      _doctorLicense = _licenseController.text;
-      _dateOfBirth = _birthDateController.text;
-      _address = _addressController.text;
-      _academicDegree = _degreeController.text;
-      _yearsOfExperience = int.tryParse(_yearsController.text) ?? 0;
-      _certificates = _certificatesController.text;
-
-      // الحصول على doctorId من التخزين أو الافتراضي إلى 1
-      final doctorIdStr = await _storageService.getDoctorId();
-      final doctorId = doctorIdStr != null ? int.tryParse(doctorIdStr) ?? 1 : 1;
-
-      // إنشاء كائن محدث للطبيب - keeping current values for first name, last name, and email
-      final updatedDoctor = Doctor(
-        doctorId: doctorId,
-        firstName: _firstName, // Keep current value
-        lastName: _lastName, // Keep current value
-        email: _email, // Keep current value
-        phoneNumber: _phoneNumber,
-        specialization: _specialization,
-        doctorLicense: _doctorLicense,
-        dateOfBirth: _dateOfBirth,
-        address: _address,
-        academicDegree: _academicDegree,
-        yearsOfExperience: _yearsOfExperience,
-        certificates: _certificates,
-      );
-
-      // طباعة البيانات التي سيتم إرسالها للتصحيح
-      print("\n===== SENDING PROFILE DATA =====");
-      print(
-          "👤 Name: '${updatedDoctor.firstName}' '${updatedDoctor.lastName}'");
-      print("📧 Email: '${updatedDoctor.email}'");
-      print("☎️ Phone: '${updatedDoctor.phoneNumber}'");
-      print("🏥 Specialization: '${updatedDoctor.specialization}'");
-      print("=================================\n");
-
-      // No need to save first name, last name, and email since we're not updating them
-
-      // حفظ doctorId إذا لم يكن محفوظًا بالفعل
-      if (doctorId > 0) {
-        await _storageService.saveDoctorId(doctorId.toString());
-      }
-
-      // استدعاء واجهة برمجة التطبيقات لتحديث الملف الشخصي
-      final response = await _doctorService.completeProfile(updatedDoctor);
-
-      // تقييم نجاح العملية بناءً على رمز الحالة
-      final success = response.statusCode == 200;
-
-      // طباعة معلومات إضافية للتشخيص
-      print("\n===== PROFILE UPDATE RESULT =====");
-      print("✅ Success: $success");
-      print("🔢 Status Code: ${response.statusCode}");
-      print("📝 Response: ${response.body}");
-      print("=================================\n");
-
-      // تحديث واجهة المستخدم بعد الإرسال
-      setState(() {
-        _isLoading = false;
-
-        if (success) {
-          // إخفاء النموذج بعد التحديث الناجح
-          _showUpdateForm = false;
-
-          // تحديث بيانات الطبيب المعروضة في الصفحة
-          _doctorData = updatedDoctor;
-
-          // عرض رسالة نجاح
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    Icon(Icons.check_circle, color: Colors.white),
-                    SizedBox(width: 10),
-                    Text('تم تحديث الملف الشخصي بنجاح'),
-                  ],
-                ),
-                backgroundColor: Colors.green,
-                duration: Duration(seconds: 3),
-              ),
-            );
-          });
-
-          // تحديث معلومات الدرج الجانبي أيضًا
-          _scaffoldKey.currentState?.closeDrawer();
-        } else {
-          // عرض رسالة خطأ
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Row(
-                  children: [
-                    Icon(Icons.error, color: Colors.white),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                          'فشل تحديث الملف الشخصي - كود الاستجابة: ${response.statusCode}'),
-                    ),
-                  ],
-                ),
-                backgroundColor: Colors.red,
-                duration: Duration(seconds: 4),
-              ),
-            );
-          });
-        }
-      });
-    } catch (e) {
-      print("\n❌ PROFILE UPDATE ERROR =====");
-      print("📝 Error Details: $e");
-      print("=================================\n");
-
-      setState(() {
-        _isLoading = false;
-      });
-
-      // عرض رسالة خطأ مع معلومات إضافية
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+  Future<void> _navigateToUpdateProfile() async {
+    if (_doctorData == null) {
+      // If _doctorData is null but we have basic info, create a temporary Doctor object
+      // This allows opening the update screen even if the full profile failed to load
+      // but basic registration info (name, email) exists.
+      if (_firstName.isNotEmpty || _lastName.isNotEmpty || _email.isNotEmpty) {
+        _doctorData = Doctor(
+          doctorId: 0, // Or try to get ID from storage if available
+          firstName: _firstName,
+          lastName: _lastName,
+          email: _email,
+          phoneNumber: '', specialization: '', doctorLicense: '',
+          dateOfBirth: '', address: '', academicDegree: '',
+          yearsOfExperience: 0, certificates: '',
+        );
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.error, color: Colors.white),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                      'حدث خطأ في الاتصال بالخادم، يرجى المحاولة مرة أخرى'),
-                ),
-              ],
-            ),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 4),
+              content: Text(
+                  'No doctor data available to edit. Please try refreshing.')), // English
+        );
+        return;
+      }
+    }
+
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => UpdateProfileScreen(doctorData: _doctorData),
+      ),
+    );
+
+    if (result != null && result is Doctor) {
+      if (mounted) {
+        setState(() {
+          _updateDisplayDataFromDoctor(result);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Profile updated successfully on the home screen!'), // English
+            backgroundColor: Colors.teal,
           ),
         );
-      });
+        _logLoadedData();
+      }
     }
   }
 
@@ -444,15 +277,21 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
       final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
       if (pickedFile != null) {
-        setState(() {
-          _profileImageFile = File(pickedFile.path);
-        });
+        if (mounted) {
+          setState(() {
+            _profileImageFile = File(pickedFile.path);
+            // Here you might want to upload the image to a server and get a URL
+            // Then update _profileImageUrl or _doctorData.profileImageUrl
+          });
+        }
       }
     } catch (e) {
       print("❌ Error selecting image: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error selecting image')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error selecting image')),
+        );
+      }
     }
   }
 
@@ -464,14 +303,20 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
       );
 
       if (result != null && result is Map<String, dynamic>) {
-        setState(() {
-          posts.add({
-            'id': DateTime.now().millisecondsSinceEpoch.toString(),
-            'text': result['text'] ?? 'New Post',
-            'imageUrl': result['imageUrl'],
-            'isLocal': result['imageUrl'] != null,
+        if (mounted) {
+          setState(() {
+            postsList.insert(0, {
+              // Insert at the beginning to show newest first
+              'id': DateTime.now().millisecondsSinceEpoch.toString(),
+              'text': result['text'] ?? 'New Post',
+              'imageUrl':
+                  result['imageUrl'], // This could be a local path or a URL
+              'isLocal': result['imageUrl'] != null &&
+                  (result['imageUrl'] as String)
+                      .startsWith('/'), // Basic check for local path
+            });
           });
-        });
+        }
       }
     } catch (e) {
       print("❌ Error adding new post: $e");
@@ -479,9 +324,11 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   }
 
   void _deletePost(String id) {
-    setState(() {
-      posts.removeWhere((post) => post['id'] == id);
-    });
+    if (mounted) {
+      setState(() {
+        postsList.removeWhere((post) => post['id'] == id);
+      });
+    }
   }
 
   Future<void> _addNewCertificate() async {
@@ -492,14 +339,18 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
       );
 
       if (result != null && result is Map<String, dynamic>) {
-        setState(() {
-          certificates.add({
-            'id': DateTime.now().millisecondsSinceEpoch.toString(),
-            'title': result['title'] ?? 'New Certificate',
-            'imageUrl': result['imageUrl'],
-            'isLocal': result['imageUrl'] != null,
+        if (mounted) {
+          setState(() {
+            certificatesList.insert(0, {
+              // Insert at the beginning
+              'id': DateTime.now().millisecondsSinceEpoch.toString(),
+              'title': result['title'] ?? 'New Certificate',
+              'imageUrl': result['imageUrl'],
+              'isLocal': result['imageUrl'] != null &&
+                  (result['imageUrl'] as String).startsWith('/'),
+            });
           });
-        });
+        }
       }
     } catch (e) {
       print("❌ Error adding new certificate: $e");
@@ -507,621 +358,159 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
   }
 
   void _deleteCertificate(String id) {
-    setState(() {
-      certificates.removeWhere((cert) => cert['id'] == id);
-    });
-  }
-
-  Widget _buildImageWidget(String? imageUrl, bool isLocal) {
-    if (imageUrl == null) {
-      // If image doesn't exist, show a default image or empty space
-      return Container(
-        color: Colors.grey[200],
-        child: Center(
-          child: Icon(
-            Icons.image,
-            size: 50,
-            color: Colors.grey[400],
-          ),
-        ),
-      );
-    }
-
-    try {
-      // Try to display the image based on its type
-      if (isLocal) {
-        return Image.file(
-          File(imageUrl),
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            print("❌ Error displaying local image: $error");
-            return Container(
-              color: Colors.grey[200],
-              child: Icon(Icons.broken_image, color: Colors.red),
-            );
-          },
-        );
-      } else {
-        return Image.network(
-          imageUrl,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            print("❌ Error displaying network image: $error");
-            return Container(
-              color: Colors.grey[200],
-              child: Icon(Icons.broken_image, color: Colors.red),
-            );
-          },
-          loadingBuilder: (context, child, loadingProgress) {
-            if (loadingProgress == null) {
-              return child;
-            }
-            return Center(
-              child: CircularProgressIndicator(
-                value: loadingProgress.expectedTotalBytes != null
-                    ? loadingProgress.cumulativeBytesLoaded /
-                        loadingProgress.expectedTotalBytes!
-                    : null,
-              ),
-            );
-          },
-        );
-      }
-    } catch (e) {
-      print("❌ Exception when trying to display image: $e");
-      return Container(
-        color: Colors.grey[200],
-        child: Icon(Icons.error, color: Colors.red),
-      );
+    if (mounted) {
+      setState(() {
+        certificatesList.removeWhere((cert) => cert['id'] == id);
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Show debugging info for name and email
-    print("\n===== PROFILE SCREEN BUILDING =====");
-    print("👤 Using name: '$_firstName' '$_lastName'");
-    print("📧 Using email: '$_email'");
-    print("================================\n");
-
     final fullName = '$_firstName $_lastName'.trim();
-    final isDoctor = _role.toLowerCase() == "doctor";
+    // final isDoctor = _role.toLowerCase() == "doctor";
 
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        flexibleSpace: Center(
-          child: Text(
-            'Doctor Profile',
+        centerTitle: true,
+        title: Text('Doctor Profile', // English
             style: TextStyle(
-              color: Colors.blueGrey.shade500,
-              fontFamily: KFontFamily,
-              fontSize: 32,
-            ),
-          ),
-        ),
+                color: Colors.blueGrey.shade700,
+                fontFamily: KFontFamily, // Make sure KFontFamily is defined
+                fontSize: 24,
+                fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.white,
+        elevation: 1,
+        iconTheme: IconThemeData(color: Colors.blueGrey.shade700),
         actions: [
-          // Add refresh button to manually reload data
           IconButton(
-            icon: Icon(Icons.refresh),
-            onPressed: _loadUserData,
-            tooltip: 'Refresh profile data',
-          ),
+              icon: Icon(Icons.refresh),
+              onPressed: _loadUserData,
+              tooltip: 'Refresh profile data'),
         ],
       ),
-      // drawer: CustomDrawer(
-      //   userName: fullName.isEmpty ? 'Doctor' : fullName,
-      //   imageUrl: _profileImageFile == null ? _profileImageUrl : null,
-      //   imageFile: _profileImageFile,
-      // ),
+      drawer: CustomDrawer(
+        userName: fullName.isEmpty ? 'Doctor' : fullName,
+        // email: _email, // Pass email to drawer if needed
+        imageUrl: _profileImageFile == null ? _profileImageUrl : null,
+        imageFile: _profileImageFile,
+        // onLogout: _logout, // Example: if you have a logout function
+      ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? Center(
+              child: CircularProgressIndicator(color: Colors.blueGrey.shade500))
           : RefreshIndicator(
-              onRefresh: () async {
-                // Refresh data from API
-                await _loadUserData();
-                return Future.delayed(Duration(milliseconds: 300));
-              },
+              onRefresh: _loadUserData,
+              color: Colors.blueGrey.shade500,
               child: SingleChildScrollView(
                 physics: AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(16),
                 child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // User photo and profile section
-                      Center(
-                        child: Stack(
-                          children: [
-                            UserPhotoAndName(
-                              name: fullName.isEmpty ? 'Doctor' : fullName,
-                              role: 'DOCTOR',
-                              imageUrl: _profileImageUrl,
-                              imageFile: _profileImageFile,
-                            ),
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: GestureDetector(
-                                onTap: _pickProfileImage,
-                                child: Container(
-                                  width: 35,
-                                  height: 35,
-                                  decoration: BoxDecoration(
-                                    color: Colors.blueGrey.shade500,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: const Icon(
-                                    Icons.camera_alt,
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Display email with better visibility
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Text(
-                            _email.isEmpty ? 'No email available' : _email,
-                            style: TextStyle(
-                              color: _email.isEmpty
-                                  ? Colors.red.shade300
-                                  : Colors.blueGrey.shade700,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // Add Update Profile button
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 16.0),
-                          child: ElevatedButton.icon(
-                            onPressed: _toggleUpdateForm,
-                            icon: Icon(
-                              _showUpdateForm ? Icons.close : Icons.edit,
-                              color: Colors.white,
-                            ),
-                            label: Text(
-                              _showUpdateForm ? 'Hide Form' : 'Update Profile',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blueGrey.shade500,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 12,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      SizedBox(height: 20),
-
-                      // Doctor Information Card - Always show if there's any data
-                      if (_firstName.isNotEmpty ||
-                          _lastName.isNotEmpty ||
-                          _phoneNumber.isNotEmpty ||
-                          _specialization.isNotEmpty ||
-                          _doctorLicense.isNotEmpty ||
-                          _email.isNotEmpty)
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.blueGrey.shade500,
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black26,
-                                offset: Offset(0, 3),
-                                blurRadius: 6,
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(Icons.person, color: Colors.white),
-                                  SizedBox(width: 8),
-                                  Text('Doctor Information',
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold)),
-                                ],
-                              ),
-                              Divider(color: Colors.white70, thickness: 1),
-                              SizedBox(height: 10),
-                              Text('• Full Name: $_firstName $_lastName',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold)),
-                              if (_email.isNotEmpty)
-                                Text('• Email: $_email',
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold)),
-                              if (_academicDegree.isNotEmpty)
-                                Text('• Academic Degree: $_academicDegree',
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 16)),
-                              if (_specialization.isNotEmpty)
-                                Text('• Specialization: $_specialization',
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 16)),
-                              Text('• Years of Experience: $_yearsOfExperience',
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 16)),
-                              if (_phoneNumber.isNotEmpty)
-                                Text('• Phone Number: $_phoneNumber',
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 16)),
-                              if (_doctorLicense.isNotEmpty)
-                                Text('• License Number: $_doctorLicense',
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 16)),
-                              if (_address.isNotEmpty)
-                                Text('• Address: $_address',
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 16)),
-                              if (_dateOfBirth.isNotEmpty)
-                                Text('• Date of Birth: $_dateOfBirth',
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 16)),
-                              if (_certificates.isNotEmpty)
-                                Text('• Certificates: $_certificates',
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 16)),
-                            ],
-                          ),
-                        ),
-
-                      SizedBox(height: 20),
-
-                      // Profile update form - only show when _showUpdateForm is true
-                      if (_showUpdateForm) ...[
-                        Text(
-                          'Update Your Profile',
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    DoctorProfileHeaderWidget(
+                      fullName: fullName,
+                      email: _email,
+                      role: _role,
+                      profileImageUrl: _profileImageUrl,
+                      imageFile: _profileImageFile,
+                      onPickImage: _pickProfileImage,
+                    ),
+                    SizedBox(height: 20),
+                    ElevatedButton.icon(
+                      // icon: Icon(Icons.edit_note, color: Colors.white),
+                      label: Text('Update Your Profile', // English
                           style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blueGrey.shade700,
-                          ),
-                        ),
-                        SizedBox(height: 12),
-
-                        // Removed first name, last name, and email text fields
-
-                        TextFormField(
-                          controller: _phoneController,
-                          decoration: InputDecoration(
-                            labelText: 'Phone Number',
-                            border: OutlineInputBorder(),
-                          ),
-                          keyboardType: TextInputType.phone,
-                        ),
-                        SizedBox(height: 12),
-
-                        TextFormField(
-                          controller: _specializationController,
-                          decoration: InputDecoration(
-                            labelText: 'Specialization',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        SizedBox(height: 12),
-
-                        TextFormField(
-                          controller: _licenseController,
-                          decoration: InputDecoration(
-                            labelText: 'License Number',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        SizedBox(height: 12),
-
-                        TextFormField(
-                          controller: _birthDateController,
-                          decoration: InputDecoration(
-                            labelText: 'Date of Birth',
-                            border: OutlineInputBorder(),
-                            suffixIcon: Icon(Icons.calendar_today),
-                          ),
-                          readOnly: true,
-                          onTap: () async {
-                            // Add date picker logic here
-                            final DateTime? picked = await showDatePicker(
-                              context: context,
-                              initialDate: DateTime.now(),
-                              firstDate: DateTime(1950),
-                              lastDate: DateTime.now(),
-                            );
-                            if (picked != null) {
-                              setState(() {
-                                _birthDateController.text =
-                                    "${picked.toLocal()}".split(' ')[0];
-                              });
-                            }
-                          },
-                        ),
-                        SizedBox(height: 12),
-
-                        TextFormField(
-                          controller: _addressController,
-                          decoration: InputDecoration(
-                            labelText: 'Address',
-                            border: OutlineInputBorder(),
-                          ),
-                          maxLines: 2,
-                        ),
-                        SizedBox(height: 12),
-
-                        TextFormField(
-                          controller: _degreeController,
-                          decoration: InputDecoration(
-                            labelText: 'Academic Degree',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                        SizedBox(height: 12),
-
-                        TextFormField(
-                          controller: _yearsController,
-                          decoration: InputDecoration(
-                            labelText: 'Years of Experience',
-                            border: OutlineInputBorder(),
-                          ),
-                          keyboardType: TextInputType.number,
-                        ),
-                        SizedBox(height: 12),
-
-                        TextFormField(
-                          controller: _certificatesController,
-                          decoration: InputDecoration(
-                            labelText: 'Certificates',
-                            border: OutlineInputBorder(),
-                          ),
-                          maxLines: 3,
-                        ),
-
-                        SizedBox(height: 20),
-
-                        Center(
-                          child: ElevatedButton(
-                            onPressed: _saveProfile,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blueGrey.shade500,
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 40, vertical: 12),
-                            ),
-                            child: Text(
-                              'Save Changes',
-                              style:
-                                  TextStyle(fontSize: 16, color: Colors.white),
-                            ),
-                          ),
-                        ),
-
-                        SizedBox(height: 30),
-                      ],
-
-                      // Certificates section - moved outside the _showUpdateForm condition
-                      if (!_showUpdateForm) ...[
-                        SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('Certificates 🏅',
+                              fontSize: 17,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600)),
+                      onPressed: _navigateToUpdateProfile,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueGrey.shade500,
+                        padding: EdgeInsets.symmetric(vertical: 13),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        elevation: 3,
+                      ),
+                    ),
+                    SizedBox(height: 24),
+                    if (_doctorData != null)
+                      DoctorInformationDisplayWidget(
+                        firstName: _doctorData!.firstName ?? '',
+                        lastName: _doctorData!.lastName ?? '',
+                        email: _doctorData!.email ?? '',
+                        academicDegree: _doctorData!.academicDegree,
+                        specialization: _doctorData!.specialization,
+                        yearsOfExperience: _doctorData!.yearsOfExperience,
+                        phoneNumber: _doctorData!.phoneNumber ?? '',
+                        doctorLicense: _doctorData!.doctorLicense,
+                        address: _doctorData!.address,
+                        dateOfBirth: _doctorData!.dateOfBirth,
+                        certificatesSummary: _doctorData!.certificates,
+                      )
+                    else if (!_isLoading)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 30.0),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              Icon(
+                                  Icons
+                                      .person_search_outlined, // More relevant icon
+                                  size: 40,
+                                  color: Colors.grey.shade400),
+                              SizedBox(height: 8),
+                              Text(
+                                'No profile data to display.', // English
                                 style: TextStyle(
-                                    fontSize: 20, fontWeight: FontWeight.bold)),
-                            IconButton(
-                              onPressed: _addNewCertificate,
-                              icon: Icon(Icons.add_circle),
-                              color: Colors.blueGrey.shade500,
-                              tooltip: 'Add Certificate',
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        GridView.builder(
-                          shrinkWrap: true,
-                          physics: NeverScrollableScrollPhysics(),
-                          itemCount: certificates.length,
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                            childAspectRatio: 0.8,
-                          ),
-                          itemBuilder: (context, index) {
-                            final cert = certificates[index];
-                            final bool isLocalImage = cert['isLocal'] == true;
-
-                            return Stack(
-                              children: [
-                                Card(
-                                  elevation: 4,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Expanded(
-                                        child: cert['imageUrl'] == null
-                                            ? Container(
-                                                color: Colors.grey[200],
-                                                child: Icon(Icons.image,
-                                                    color: Colors.grey[400]),
-                                              )
-                                            : ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.vertical(
-                                                  top: Radius.circular(10),
-                                                ),
-                                                child: _buildImageWidget(
-                                                    cert['imageUrl'],
-                                                    isLocalImage),
-                                              ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(8.0),
-                                        child: Text(
-                                          cert['title'] ?? 'Certificate',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Positioned(
-                                  top: 0,
-                                  right: 0,
-                                  child: IconButton(
-                                    icon: Icon(Icons.delete, color: Colors.red),
-                                    onPressed: () =>
-                                        _deleteCertificate(cert['id']),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-
-                        SizedBox(height: 30),
-
-                        // Posts section
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('Posts 📄',
-                                style: TextStyle(
-                                    fontSize: 20, fontWeight: FontWeight.bold)),
-                            IconButton(
-                              onPressed: _addNewPost,
-                              icon: Icon(Icons.add_circle),
-                              color: Colors.blueGrey.shade500,
-                              tooltip: 'Add Post',
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        posts.isEmpty
-                            ? Center(
-                                child: Text(
-                                  'No posts available',
-                                  style: TextStyle(color: Colors.grey),
-                                ),
-                              )
-                            : ListView.builder(
-                                shrinkWrap: true,
-                                physics: NeverScrollableScrollPhysics(),
-                                itemCount: posts.length,
-                                itemBuilder: (context, index) {
-                                  final post = posts[index];
-                                  final bool isLocalImage =
-                                      post['isLocal'] == true;
-
-                                  return Stack(
-                                    children: [
-                                      Card(
-                                        margin:
-                                            const EdgeInsets.only(bottom: 12),
-                                        elevation: 4,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            if (post['imageUrl'] != null)
-                                              ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.vertical(
-                                                        top: Radius.circular(
-                                                            10)),
-                                                child: SizedBox(
-                                                  height: 200,
-                                                  width: double.infinity,
-                                                  child: _buildImageWidget(
-                                                      post['imageUrl'],
-                                                      isLocalImage),
-                                                ),
-                                              ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.all(12.0),
-                                              child: Text(
-                                                post['text'] ?? '',
-                                                style: TextStyle(fontSize: 16),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Positioned(
-                                        top: 0,
-                                        right: 0,
-                                        child: IconButton(
-                                          icon: Icon(Icons.delete,
-                                              color: Colors.red),
-                                          onPressed: () =>
-                                              _deletePost(post['id']),
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
+                                    color: Colors.grey.shade600, fontSize: 16),
+                                textAlign: TextAlign.center,
                               ),
-                      ],
-                    ]),
+                              SizedBox(height: 8),
+                              TextButton(
+                                  onPressed: _loadUserData,
+                                  child: Text("Try Refreshing")) // English
+                            ],
+                          ),
+                        ),
+                      ),
+                    SizedBox(height: 30),
+                    DoctorCertificatesWidget(
+                      certificatesList: certificatesList,
+                      onAddNewCertificate: _addNewCertificate,
+                      onDeleteCertificate: _deleteCertificate,
+                      buildImageWidget:
+                          buildImageWidget, // From your build_image_widget.dart
+                    ),
+                    SizedBox(height: 30),
+                    DoctorPostsWidget(
+                      // Assuming this is the correct name for your posts widget
+                      postsList: postsList,
+                      onAddNewPost: _addNewPost,
+                      onDeletePost: _deletePost,
+                      buildImageWidget:
+                          buildImageWidget, // From your build_image_widget.dart
+                    ),
+                    SizedBox(height: 20),
+                  ],
+                ),
               ),
             ),
-      floatingActionButton: isDoctor
-          ? FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => UploadChoiceView()),
-                );
-              },
-              child: const Icon(Icons.upload),
-              backgroundColor: Colors.blueGrey,
-            )
-          : null,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (_) => UploadChoiceView()));
+        },
+        child: const Icon(Icons.upload, color: Colors.white),
+        backgroundColor: Colors.blueGrey.shade500,
+        tooltip: "Upload Content",
+      ),
     );
   }
 
   @override
   void dispose() {
-    _phoneController.dispose();
-    _specializationController.dispose();
-    _licenseController.dispose();
-    _birthDateController.dispose();
-    _addressController.dispose();
-    _degreeController.dispose();
-    _yearsController.dispose();
-    _certificatesController.dispose();
     super.dispose();
   }
 }

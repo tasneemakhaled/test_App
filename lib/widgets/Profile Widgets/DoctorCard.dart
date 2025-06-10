@@ -3,87 +3,155 @@ import 'package:flutter/material.dart';
 class DoctorCard extends StatelessWidget {
   final String name;
   final String specialty;
-  final String image;
-  final VoidCallback onSubscribe;
-  final VoidCallback? onTap; // Added onTap parameter
+  final String? email; // <-- إضافة حقل الإيميل (اختياري)
+  final String imageUrl;
+  final int? experienceYears;
+  final VoidCallback? onTapCard;
+  final VoidCallback? onChatPressed;
 
   const DoctorCard({
     Key? key,
     required this.name,
     required this.specialty,
-    required this.image,
-    required this.onSubscribe,
-    this.onTap,
+    this.email, // <-- إضافة الإيميل إلى الكونستركتور
+    required this.imageUrl,
+    this.experienceYears,
+    this.onTapCard,
+    this.onChatPressed,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Card(
       elevation: 4,
-      margin: EdgeInsets.only(bottom: 15),
+      margin: EdgeInsets.symmetric(vertical: 8.0),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: onTap, // Make the whole card clickable
-        borderRadius: BorderRadius.circular(12),
-        splashColor: Colors.blueGrey.withOpacity(0.3),
+        onTap: onTapCard,
+        splashColor: Colors.blueGrey.withOpacity(0.2),
+        highlightColor: Colors.blueGrey.withOpacity(0.1),
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Row(
-            children: [
-              // Doctor image
-              CircleAvatar(
-                radius: 40,
-                backgroundImage: NetworkImage(image),
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8.0),
+                child: Image.network(
+                  imageUrl,
+                  width: 80,
+                  height: 80,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      width: 80,
+                      height: 80,
+                      color: Colors.grey.shade200,
+                      child: Icon(Icons.person,
+                          size: 40, color: Colors.grey.shade400),
+                    );
+                  },
+                ),
               ),
               SizedBox(width: 16),
-              // Doctor info
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
                     Text(
                       name,
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: Colors.blueGrey.shade800,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 5),
+                    SizedBox(height: 4),
                     Text(
                       specialty,
                       style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 16,
+                        fontSize: 15,
+                        color: Colors.blueGrey.shade600,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 8),
-                    // Hint text to show the card is clickable
-                    Text(
-                      'Tap to view details',
-                      style: TextStyle(
-                        color: Colors.blue,
-                        fontSize: 12,
-                        fontStyle: FontStyle.italic,
+                    if (email != null && email!.isNotEmpty) ...[
+                      // <-- التحقق من وجود الإيميل وعرضه
+                      SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(Icons.email_outlined,
+                              size: 14, color: Colors.blueGrey.shade400),
+                          SizedBox(width: 4),
+                          Expanded(
+                            // لتجنب overflow إذا كان الإيميل طويلًا
+                            child: Text(
+                              email!,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.blueGrey.shade500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
+                    ],
+                    if (experienceYears != null && experienceYears! > 0) ...[
+                      SizedBox(height: 4),
+                      Text(
+                        '$experienceYears years of experience',
+                        style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.teal.shade600,
+                            fontWeight: FontWeight.w500),
+                      ),
+                    ],
+                    SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (onChatPressed != null)
+                          ElevatedButton.icon(
+                            icon: Icon(Icons.chat_bubble_outline, size: 18),
+                            label: Text('Chat'),
+                            onPressed: onChatPressed,
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.teal.shade400,
+                                foregroundColor: Colors.white,
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 8),
+                                textStyle: TextStyle(fontSize: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                )),
+                          ),
+                        if (onTapCard != null)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'View Details',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.blueGrey.shade500,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              SizedBox(width: 4),
+                              Icon(Icons.arrow_forward_ios,
+                                  size: 14, color: Colors.blueGrey.shade400),
+                            ],
+                          ),
+                      ],
+                    )
                   ],
-                ),
-              ),
-              // Subscribe button
-              ElevatedButton(
-                onPressed: () {
-                  // Use a future to prevent the card's onTap from being triggered
-                  Future.microtask(() => onSubscribe());
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueGrey,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: Text(
-                  'Subscribe',
-                  style: TextStyle(color: Colors.white),
                 ),
               ),
             ],
