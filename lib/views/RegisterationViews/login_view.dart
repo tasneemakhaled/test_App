@@ -10,7 +10,6 @@ import 'package:auti_warrior_app/views/home_views/home_view.dart';
 import 'package:auti_warrior_app/views/DoctorViews/doctorhomepage.dart';
 
 import '../../widgets/Registeration Widgets/curve.dart';
-
 import '../../widgets/Registeration Widgets/sign_up_navigator.dart';
 import '../../widgets/Registeration Widgets/social_login_buttons.dart';
 
@@ -31,22 +30,20 @@ class _LoginViewState extends State<LoginView> {
   @override
   void initState() {
     super.initState();
-    // تحقق من وجود جلسة سابقة عند بدء الشاشة
+    // Check for existing session on screen start
     _checkExistingSession();
   }
 
-  /// تحقق من وجود توكن وتوجيه المستخدم إذا كان موجودًا
+  /// Check for token and redirect user if available
   void _checkExistingSession() async {
     final token = await _storageService.getToken();
     final role = await _storageService.getRole();
 
     if (token != null && token.isNotEmpty && role != null && role.isNotEmpty) {
-      // لا نريد التوجيه التلقائي عند إعادة فتح التطبيق بعد تسجيل الخروج
-      // لذلك سنتحقق من الوقت المنقضي منذ آخر خروج
+      // Avoid auto-login immediately after logout
       final lastLogout = await _storageService.getLastLogoutTime();
       final now = DateTime.now();
 
-      // إذا كان آخر تسجيل خروج قبل أقل من دقيقة، فلا نقوم بتسجيل الدخول التلقائي
       if (lastLogout != null) {
         final difference = now.difference(lastLogout);
         if (difference.inMinutes < 1) {
@@ -58,14 +55,13 @@ class _LoginViewState extends State<LoginView> {
     }
   }
 
-  /// تنفيذ عملية تسجيل الدخول
+  /// Handle login action
   void _handleLogin() async {
     setState(() => isLoading = true);
 
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text("يرجى إدخال البريد الإلكتروني وكلمة المرور")),
+        const SnackBar(content: Text("Please enter email and password")),
       );
       setState(() => isLoading = false);
       return;
@@ -82,7 +78,6 @@ class _LoginViewState extends State<LoginView> {
       print("🔍 Login Response - Token: ${response.token.substring(0, 20)}...");
       print("🔍 Login Response - Role: ${response.role}");
 
-      // حفظ بيانات المستخدم عند النجاح
       if (response.token.isNotEmpty) {
         await _storageService.saveToken(response.token);
         await _storageService.saveRole(response.role);
@@ -93,17 +88,16 @@ class _LoginViewState extends State<LoginView> {
           await _storageService.saveLastName(response.lastName!);
         }
 
-        // توجيه المستخدم بناءً على الدور
         _navigateBasedOnRole(response.role);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("لم يتم استلام رمز الدخول")),
+          const SnackBar(content: Text("No token received")),
         );
       }
     } catch (error) {
-      print("❌ خطأ في تسجيل الدخول: $error");
+      print("❌ Login error: $error");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("فشل تسجيل الدخول: $error")),
+        SnackBar(content: Text("Login failed: $error")),
       );
     } finally {
       setState(() => isLoading = false);
@@ -111,9 +105,8 @@ class _LoginViewState extends State<LoginView> {
   }
 
   void _navigateBasedOnRole(String role) {
-    print("🧭 توجيه المستخدم بناءً على الدور: $role");
+    print("🧭 Navigating based on role: $role");
 
-    // Use simpler comparison - case insensitive contains check
     if (role.toUpperCase().contains('DOCTOR')) {
       Navigator.pushAndRemoveUntil(
         context,
@@ -128,7 +121,7 @@ class _LoginViewState extends State<LoginView> {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("تم استلام دور غير صالح: $role")),
+        SnackBar(content: Text("Invalid role received: $role")),
       );
     }
   }

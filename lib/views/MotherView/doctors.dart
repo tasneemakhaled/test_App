@@ -3,8 +3,9 @@ import 'package:auti_warrior_app/services/getAllDoctorsService.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/doctorModels/AllDoctorsModel.dart';
-import '../../widgets/Profile Widgets/DoctorCard.dart';
+import '../../widgets/Profile Widgets/DoctorCard.dart'; // تأكدي أن هذا المسار صحيح
 import 'doctor_details_page.dart';
+import 'package:auti_warrior_app/views/chats/ChatsView.dart'; // <-- تأكدي من استيراد ChatsView ومن صحة المسار
 
 class AvailableDoctorsPage extends StatefulWidget {
   @override
@@ -49,19 +50,31 @@ class _AvailableDoctorsPageState extends State<AvailableDoctorsPage> {
     }
   }
 
+  // **** التعديل الرئيسي هنا في هذه الدالة ****
   void handleChat(AllDoctorsModel doctor) {
-    log('Attempting to chat with Dr. ${doctor.firstName} ${doctor.lastName}, Specialty: ${doctor.specialization ?? "Unknown"}');
+    log('Navigating to chat with Dr. ${doctor.firstName} ${doctor.lastName}, Email: ${doctor.email}');
 
-    // Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(doctor: doctor)));
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-            'Opening chat with Dr. ${doctor.firstName} ${doctor.lastName}...'),
-        backgroundColor: Colors.blueAccent,
-      ),
-    );
+    // التأكد من أن الإيميل موجود وغير فارغ قبل الانتقال
+    if (doctor.email != null && doctor.email!.isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              ChatsView(email: doctor.email!), // تمرير الإيميل إلى ChatsView
+        ),
+      );
+    } else {
+      // إذا لم يكن الإيميل متوفرًا، أظهري رسالة خطأ للمستخدم
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Cannot start chat. Doctor\'s email is not available.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      log('Chat cannot be initiated: Doctor email is null or empty for Dr. ${doctor.firstName} ${doctor.lastName}');
+    }
   }
+  // **** نهاية التعديل الرئيسي ****
 
   void navigateToDoctorDetails(AllDoctorsModel doctor) {
     Navigator.push(
@@ -162,11 +175,12 @@ class _AvailableDoctorsPageState extends State<AvailableDoctorsPage> {
                               name: "${doctor.firstName} ${doctor.lastName}",
                               specialty:
                                   doctor.specialization ?? 'Psychologist',
-                              email: doctor.email, // <-- تمرير الإيميل هنا
+                              email: doctor.email, // تم تمريره بالفعل
                               imageUrl: "https://via.placeholder.com/150",
                               experienceYears: doctor.yearsOfExperience,
                               onTapCard: () => navigateToDoctorDetails(doctor),
-                              onChatPressed: () => handleChat(doctor),
+                              onChatPressed: () => handleChat(
+                                  doctor), // هنا يتم استدعاء دالة handleChat المعدلة
                             );
                           }),
                     ),
